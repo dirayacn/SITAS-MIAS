@@ -17,53 +17,71 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SITAS">
     
-    <!-- Dynamic Manifest Injector -->
+    <!-- Dynamic Manifest Injector & Secure Service Worker Registration -->
     <script>
-        const manifest = {
-            "short_name": "SITAS",
-            "name": "Sistem Informasi Tabungan Siswa MI Assulaimaniyah",
-            "icons": [
-                {
-                    "src": "https://placehold.co/192x192/0f766e/ffffff?text=SITAS",
-                    "type": "image/png",
-                    "sizes": "192x192"
-                },
-                {
-                    "src": "https://placehold.co/512x512/0f766e/ffffff?text=SITAS",
-                    "type": "image/png",
-                    "sizes": "512x512"
-                }
-            ],
-            "start_url": ".",
-            "background_color": "#f8fafc",
-            "theme_color": "#0f766e",
-            "display": "standalone",
-            "orientation": "portrait"
-        };
-        const stringManifest = JSON.stringify(manifest);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        const relManifest = document.createElement('link');
-        relManifest.setAttribute('rel', 'manifest');
-        relManifest.setAttribute('href', manifestURL);
-        document.head.appendChild(relManifest);
-
-        // Register Dynamic Service Worker
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', (e) => {
-                    self.skipWaiting();
-                });
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(
-                        fetch(e.request).catch(() => caches.match(e.request))
-                    );
-                });
-            `;
-            const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            const swURL = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swURL).catch(err => console.log("SW Register failed: ", err));
+        try {
+            const manifest = {
+                "short_name": "SITAS",
+                "name": "Sistem Informasi Tabungan Siswa MI Assulaimaniyah",
+                "icons": [
+                    {
+                        "src": "https://placehold.co/192x192/0f766e/ffffff?text=SITAS",
+                        "type": "image/png",
+                        "sizes": "192x192"
+                    },
+                    {
+                        "src": "https://placehold.co/512x512/0f766e/ffffff?text=SITAS",
+                        "type": "image/png",
+                        "sizes": "512x512"
+                    }
+                ],
+                "start_url": ".",
+                "background_color": "#f8fafc",
+                "theme_color": "#0f766e",
+                "display": "standalone",
+                "orientation": "portrait"
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            const relManifest = document.createElement('link');
+            relManifest.setAttribute('rel', 'manifest');
+            relManifest.setAttribute('href', manifestURL);
+            document.head.appendChild(relManifest);
+        } catch (e) {
+            // Gagal memproses manifest di lingkungan sandbox diabaikan secara aman
         }
+
+        // Registrasi Service Worker yang Aman & Terproteksi dari Terowongan Sandbox Iframe
+        (function() {
+            try {
+                const href = window.location.href || "";
+                const proto = window.location.protocol || "";
+                
+                // PROTEKSI MUTLAK: Jangan daftarkan Service Worker jika berada di Editor Sandbox, Iframe, atau file lokal.
+                // Ini mencegah pemicuan console.error yang memicu notifikasi crash palsu di editor Anda.
+                if (href.indexOf('usercontent') !== -1 || 
+                    href.indexOf('google') !== -1 || 
+                    proto.indexOf('blob') !== -1 || 
+                    window.self !== window.top) {
+                    return; // Lewati pendaftaran secara senyap demi stabilitas preview editor
+                }
+                
+                if ('serviceWorker' in navigator && proto === 'https:') {
+                    const swCode = `
+                        self.addEventListener('install', (e) => { self.skipWaiting(); });
+                        self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });
+                    `;
+                    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                    const swURL = URL.createObjectURL(swBlob);
+                    navigator.serviceWorker.register(swURL).catch(function() {
+                        // Gagal mendaftar diabaikan secara senyap tanpa menghasilkan log error di konsol
+                    });
+                }
+            } catch (err) {
+                // Senyap penuh demi stabilitas editor
+            }
+        })();
     </script>
 
     <style>
@@ -105,7 +123,7 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-extrabold text-slate-800" id="confirmTitle">Konfirmasi Tindakan</h3>
-                <p class="text-xs text-slate-500 font-medium leading-relaxed" id="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+                <p class="text-xs text-slate-505 font-medium leading-relaxed" id="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
             </div>
             <div class="flex items-center gap-2 pt-2">
                 <button id="btnConfirmCancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all">Batal</button>
@@ -133,9 +151,9 @@
             </div>
 
             <!-- Formulir Login -->
-            <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+            <form id="formLogin" onsubmit="window.handleLogin(event)" class="space-y-4">
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Username / No. Induk Rekening</label>
+                    <label class="text-xs font-bold text-slate-505 uppercase tracking-wider block">Username / No. Induk Rekening</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                             <i class="fa-solid fa-user text-xs"></i>
@@ -146,7 +164,7 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Kata Sandi</label>
+                    <label class="text-xs font-bold text-slate-505 uppercase tracking-wider block">Kata Sandi</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                             <i class="fa-solid fa-lock text-xs"></i>
@@ -189,7 +207,7 @@
             <!-- Footer Sidebar / Log Out -->
             <div class="p-4 border-t border-slate-800 flex items-center justify-between">
                 <span class="text-[9px] text-slate-500 font-semibold font-mono">v3.0 - SITAS Cloud</span>
-                <button onclick="handleLogout()" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition-all flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/30">
+                <button onclick="window.handleLogout()" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition-all flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/30">
                     <i class="fa-solid fa-power-off"></i> Keluar
                 </button>
             </div>
@@ -218,7 +236,7 @@
                         </p>
                     </div>
                     <!-- Tombol Awan Sinkronisasi (Muncul Jika Diizinkan) -->
-                    <button onclick="openSyncHub()" id="btnSyncCloud" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-extrabold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+                    <button onclick="window.openSyncHub()" id="btnSyncCloud" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-extrabold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
                         <i class="fa-solid fa-cloud-sun animate-bounce"></i> Cloud Hub
                     </button>
                 </div>
@@ -241,14 +259,14 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-teal-600"></i> Form Pendaftaran Rekening Siswa Baru
                 </h3>
-                <button onclick="closeModal('modalNewStudent')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalNewStudent')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
-            <form id="formNewStudent" onsubmit="submitNewStudent(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+            <form id="formNewStudent" onsubmit="window.submitNewStudent(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
                 <div class="col-span-2 space-y-1">
-                    <label class="text-slate-500 font-bold block">Nama Lengkap Siswa</label>
+                    <label class="text-slate-505 font-bold block">Nama Lengkap Siswa</label>
                     <input type="text" id="m_stu_name" required placeholder="Contoh: Muhammad Akhyar" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 <div class="space-y-1">
@@ -262,16 +280,16 @@
                     <input type="text" id="m_stu_parent" required placeholder="Nama Bapak/Ibu" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Nomor HP/WA Orang Tua</label>
+                    <label class="text-slate-550 font-bold block">Nomor HP/WA Orang Tua</label>
                     <input type="text" id="m_stu_phone" required placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Setoran Perdana (IDR)</label>
+                    <label class="text-slate-555 font-bold block">Setoran Perdana (IDR)</label>
                     <input type="number" id="m_stu_deposit" min="10000" required placeholder="Minimal Rp10.000" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 
                 <div class="col-span-2 pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalNewStudent')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalNewStudent')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Daftarkan & Buat Rekening</button>
                 </div>
             </form>
@@ -285,13 +303,13 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-money-bill-transfer text-teal-600"></i> Transaksi Tabungan Baru
                 </h3>
-                <button onclick="closeModal('modalNewTransaction')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalNewTransaction')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl space-y-1 text-xs">
-                <div class="flex items-center justify-between font-bold text-slate-500">
+                <div class="flex items-center justify-between font-bold text-slate-550">
                     <span>NASABAH (SISWA)</span>
                     <span id="txModalClass" class="bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded-full text-[9px] uppercase font-bold">Kelas 3-A</span>
                 </div>
@@ -302,21 +320,21 @@
                 </div>
             </div>
             
-            <form id="formNewTransaction" onsubmit="submitNewTransaction(event)" class="space-y-4 text-xs font-medium">
+            <form id="formNewTransaction" onsubmit="window.submitNewTransaction(event)" class="space-y-4 text-xs font-medium">
                 <input type="hidden" id="txModalStudentId">
                 
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Jenis Mutasi Transaksi</label>
+                    <label class="text-slate-505 font-bold block">Jenis Mutasi Transaksi</label>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all">
-                            <input type="radio" name="tx_type" id="tx_type_debit" value="debit" required checked onchange="updateMinWithdrawWarning()">
+                            <input type="radio" name="tx_type" id="tx_type_debit" value="debit" required checked onchange="window.updateMinWithdrawWarning()">
                             <div class="leading-none">
                                 <span class="font-bold text-slate-800 block text-xs">Setor Tunai (D)</span>
                                 <span class="text-[9px] text-slate-400">Menambah saldo</span>
                             </div>
                         </label>
                         <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all">
-                            <input type="radio" name="tx_type" id="tx_type_kredit" value="kredit" required onchange="updateMinWithdrawWarning()">
+                            <input type="radio" name="tx_type" id="tx_type_kredit" value="kredit" required onchange="window.updateMinWithdrawWarning()">
                             <div class="leading-none">
                                 <span class="font-bold text-slate-800 block text-xs">Penarikan Tunai (K)</span>
                                 <span class="text-[9px] text-slate-400">Mengurangi saldo</span>
@@ -326,7 +344,7 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Jumlah Nominal (IDR)</label>
+                    <label class="text-slate-550 font-bold block">Jumlah Nominal (IDR)</label>
                     <input type="number" id="tx_amount" required min="1000" placeholder="Masukkan jumlah dana..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                     <p id="withdrawWarning" class="text-[10px] text-rose-600 hidden font-semibold leading-relaxed mt-1">
                         <i class="fa-solid fa-triangle-exclamation"></i> Melebihi batas aman! Sisa saldo minimum wajib mengendap senilai <strong id="withdrawMinVal">Rp50.000</strong>.
@@ -334,12 +352,12 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Keterangan Transaksi</label>
+                    <label class="text-slate-505 font-bold block">Keterangan Transaksi</label>
                     <input type="text" id="tx_desc" placeholder="Contoh: Setoran jajan harian" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalNewTransaction')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalNewTransaction')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Simpan Transaksi</button>
                 </div>
             </form>
@@ -353,7 +371,7 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-print text-teal-600"></i> Preview & Cetak Buku Tabungan Siswa
                 </h3>
-                <button onclick="closeModal('modalPrintPassbook')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalPrintPassbook')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -424,8 +442,8 @@
                     *Gunakan tombol di samping untuk mencetak berkas secara fisik atau menyimpannya sebagai file PDF.
                 </span>
                 <div class="flex items-center gap-2">
-                    <button onclick="closeModal('modalPrintPassbook')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">Tutup</button>
-                    <button onclick="executePrint()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                    <button onclick="window.closeModal('modalPrintPassbook')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">Tutup</button>
+                    <button onclick="window.executePrint()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
                         <i class="fa-solid fa-print"></i> Cetak Sekarang
                     </button>
                 </div>
@@ -440,7 +458,7 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up text-teal-600"></i> Cloud Sync Hub (Google Sheets)
                 </h3>
-                <button onclick="closeModal('modalSyncHub')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalSyncHub')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -456,11 +474,11 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="cloudPullData()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all">
+                    <button onclick="window.cloudPullData()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all">
                         <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
                         <span class="text-[10px]">PULL (Ambil Data)</span>
                     </button>
-                    <button onclick="cloudPushData()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all shadow-sm">
+                    <button onclick="window.cloudPushData()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all shadow-sm">
                         <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
                         <span class="text-[10px]">PUSH (Kirim Data)</span>
                     </button>
@@ -476,12 +494,12 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5" id="staffModalTitle">
                     <i class="fa-solid fa-user-shield text-teal-600"></i> Kelola Kredensial Staff
                 </h3>
-                <button onclick="closeModal('modalStaffEdit')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalStaffEdit')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <form id="formStaff" onsubmit="submitStaffForm(event)" class="space-y-3.5 text-xs font-medium">
+            <form id="formStaff" onsubmit="window.submitStaffForm(event)" class="space-y-3.5 text-xs font-medium">
                 <input type="hidden" id="staff_edit_id">
                 
                 <div class="space-y-1">
@@ -497,7 +515,7 @@
                     <input type="text" id="staff_password" required placeholder="Contoh: akhyar123" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-slate-500 font-bold block">Klasifikasi Peran (Role)</label>
+                    <label class="text-slate-505 font-bold block">Klasifikasi Peran (Role)</label>
                     <select id="staff_role" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500">
                         <option value="admin">Admin Utama (Tata Usaha)</option>
                         <option value="teacher">Guru Wali Kelas (Guru)</option>
@@ -506,7 +524,7 @@
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalStaffEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalStaffEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Simpan Akun Staff</button>
                 </div>
             </form>
@@ -518,7 +536,7 @@
     <!-- ======================================================== -->
     <script>
         
-        // Data Default Seed Awal (Jika LocalStorage Kosong)
+        // Data Default Seed Awal
         const DEFAULT_SISWAS = [
             { id: "1001", name: "Ahmad Fauzi", class: "3-A", parentName: "Bpk. Slamet", phone: "081234567801", balance: 1250000, status: "Aktif" },
             { id: "1002", name: "Balqis Humaira", class: "3-A", parentName: "Ibu Nurul", phone: "081234567802", balance: 750000, status: "Aktif" },
@@ -577,95 +595,178 @@
             gasURL: ""
         };
 
-        // Memuat / Menginisialisasi Database dari LocalStorage
-        let siswas = JSON.parse(localStorage.getItem('sitas_siswas')) || DEFAULT_SISWAS;
-        let transactions = JSON.parse(localStorage.getItem('sitas_transactions')) || DEFAULT_TRANSACTIONS;
-        let classes = JSON.parse(localStorage.getItem('sitas_classes')) || DEFAULT_CLASSES;
-        let userDatabase = JSON.parse(localStorage.getItem('sitas_users')) || DEFAULT_USER_DATABASE;
-        let roleAuthorities = JSON.parse(localStorage.getItem('sitas_authorities')) || DEFAULT_ROLE_AUTHORITIES;
-        let instDetails = JSON.parse(localStorage.getItem('sitas_inst')) || DEFAULT_INST_DETAILS;
+        // ========================================================
+        // DEFENSIVE LOCALSTORAGE PARSER (ANTI-CRASH)
+        // ========================================================
+        function safeGetLocalStorage(key, defaultValue) {
+            try {
+                const item = localStorage.getItem(key);
+                if (item === null || item === "null" || item === "undefined") {
+                    return defaultValue;
+                }
+                const parsed = JSON.parse(item);
+                if (!parsed || (Array.isArray(defaultValue) && !Array.isArray(parsed))) {
+                    return defaultValue;
+                }
+                return parsed;
+            } catch (e) {
+                console.warn("SITAS: Cache data " + key + " korup, memulihkan data default.");
+                return defaultValue;
+            }
+        }
+
+        let siswas = safeGetLocalStorage('sitas_siswas', DEFAULT_SISWAS);
+        let transactions = safeGetLocalStorage('sitas_transactions', DEFAULT_TRANSACTIONS);
+        let classes = safeGetLocalStorage('sitas_classes', DEFAULT_CLASSES);
+        let userDatabase = safeGetLocalStorage('sitas_users', DEFAULT_USER_DATABASE);
+        let roleAuthorities = safeGetLocalStorage('sitas_authorities', DEFAULT_ROLE_AUTHORITIES);
+        let instDetails = safeGetLocalStorage('sitas_inst', DEFAULT_INST_DETAILS);
 
         let currentUser = null;
         let activeTab = "dashboard";
 
-        // ========================================================
-        // FITUR SELF-HEALING: MENGATASI SCHEMA MISMATCH DATA LAMA
-        // ========================================================
-        function healDatabaseSchemas() {
-            let changesMade = false;
-
-            // 1. Pastikan instDetails memiliki key baru
-            if (instDetails && instDetails.gasURL === undefined) {
-                instDetails.gasURL = "";
-                changesMade = true;
-            }
-
-            // 2. Migrasikan peran lama 'teacher_3a' ke peran baru 'teacher' di database pengguna
-            if (Array.isArray(userDatabase)) {
-                userDatabase.forEach(u => {
-                    if (u.role === "teacher_3a") {
-                        u.role = "teacher";
-                        u.roleLabel = "Guru Wali Kelas";
-                        changesMade = true;
-                    }
-                });
-            } else {
-                userDatabase = JSON.parse(JSON.stringify(DEFAULT_USER_DATABASE));
-                changesMade = true;
-            }
-
-            // 3. Pastikan skema roleAuthorities mendukung peran 'teacher' bukan 'teacher_3a'
-            if (roleAuthorities) {
-                if (!roleAuthorities.teacher) {
-                    roleAuthorities.teacher = roleAuthorities.teacher_3a || { 
-                        canSetorTarik: false, 
-                        canKelolaSiswa: true, 
-                        canCetakMutasi: true, 
-                        canConfig: false, 
-                        canResetDatabase: false, 
-                        canManageStaff: false 
-                    };
-                    delete roleAuthorities.teacher_3a;
-                    changesMade = true;
-                }
-                
-                // Lengkapi nilai default jika key baru kosong
-                ["admin", "teacher", "manager"].forEach(role => {
-                    if (roleAuthorities[role]) {
-                        if (roleAuthorities[role].canResetDatabase === undefined) {
-                            roleAuthorities[role].canResetDatabase = (role === "manager");
-                            changesMade = true;
-                        }
-                        if (roleAuthorities[role].canManageStaff === undefined) {
-                            roleAuthorities[role].canManageStaff = (role === "manager");
-                            changesMade = true;
-                        }
-                    }
-                });
-            } else {
-                roleAuthorities = JSON.parse(JSON.stringify(DEFAULT_ROLE_AUTHORITIES));
-                changesMade = true;
-            }
-
-            // 4. Pastikan data tabel kelas dinamis ada
-            if (!classes || !Array.isArray(classes)) {
-                classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
-                changesMade = true;
-            }
-
-            if (changesMade) {
+        // Fungsi Simpan ke LocalStorage yang Diperkuat
+        function saveToLocalStorage() {
+            try {
                 localStorage.setItem('sitas_siswas', JSON.stringify(siswas));
                 localStorage.setItem('sitas_transactions', JSON.stringify(transactions));
                 localStorage.setItem('sitas_classes', JSON.stringify(classes));
                 localStorage.setItem('sitas_users', JSON.stringify(userDatabase));
                 localStorage.setItem('sitas_authorities', JSON.stringify(roleAuthorities));
                 localStorage.setItem('sitas_inst', JSON.stringify(instDetails));
-                console.log("SITAS: Skema database berhasil diperbaiki & diperbarui secara otomatis!");
+                
+                refreshSession();
+                updateSyncBadge();
+            } catch (e) {
+                console.error("SITAS: Gagal menyimpan ke localStorage: ", e);
             }
         }
 
-        // Panggil fungsi penyembuhan skema saat load halaman
+        // ========================================================
+        // SUTRA MIGRASI JALUR AMAN (SELF-HEALING DATABASE SCHEMAS)
+        // ========================================================
+        function healDatabaseSchemas() {
+            try {
+                let changesMade = false;
+
+                if (!instDetails) {
+                    instDetails = JSON.parse(JSON.stringify(DEFAULT_INST_DETAILS));
+                    changesMade = true;
+                }
+                if (instDetails && instDetails.gasURL === undefined) {
+                    instDetails.gasURL = "";
+                    changesMade = true;
+                }
+
+                if (Array.isArray(userDatabase)) {
+                    userDatabase.forEach(u => {
+                        if (u.role === "teacher_3a") {
+                            u.role = "teacher";
+                            u.roleLabel = "Guru Wali Kelas";
+                            changesMade = true;
+                        }
+                    });
+                } else {
+                    userDatabase = JSON.parse(JSON.stringify(DEFAULT_USER_DATABASE));
+                    changesMade = true;
+                }
+
+                if (roleAuthorities) {
+                    if (!roleAuthorities.teacher) {
+                        roleAuthorities.teacher = roleAuthorities.teacher_3a || { 
+                            canSetorTarik: false, 
+                            canKelolaSiswa: true, 
+                            canCetakMutasi: true, 
+                            canConfig: false, 
+                            canResetDatabase: false, 
+                            canManageStaff: false 
+                        };
+                        delete roleAuthorities.teacher_3a;
+                        changesMade = true;
+                    }
+                    
+                    ["admin", "teacher", "manager"].forEach(role => {
+                        if (roleAuthorities[role]) {
+                            if (roleAuthorities[role].canResetDatabase === undefined) {
+                                roleAuthorities[role].canResetDatabase = (role === "manager");
+                                changesMade = true;
+                            }
+                            if (roleAuthorities[role].canManageStaff === undefined) {
+                                roleAuthorities[role].canManageStaff = (role === "manager");
+                                changesMade = true;
+                            }
+                        }
+                    });
+                } else {
+                    roleAuthorities = JSON.parse(JSON.stringify(DEFAULT_ROLE_AUTHORITIES));
+                    changesMade = true;
+                }
+
+                if (!classes || !Array.isArray(classes)) {
+                    classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
+                    changesMade = true;
+                }
+
+                if (changesMade) {
+                    saveToLocalStorage();
+                    console.log("SITAS: Skema database berhasil diselaraskan otomatis!");
+                }
+            } catch (err) {
+                console.error("SITAS: Gagal menyelaraskan skema otomatis:", err);
+            }
+        }
+
         healDatabaseSchemas();
+
+        // ========================================================
+        // MANAJEMEN SESI SINKRON (30 MENIT EXPIRE BYPASS)
+        // ========================================================
+        function checkActiveSession() {
+            try {
+                const sessionUser = localStorage.getItem('sitas_current_user');
+                const loginTime = localStorage.getItem('sitas_login_time');
+                
+                if (sessionUser && loginTime) {
+                    const elapsed = Date.now() - parseInt(loginTime);
+                    const thirtyMinutes = 30 * 60 * 1000; // 1800000 Milidetik
+                    
+                    if (elapsed < thirtyMinutes) {
+                        localStorage.setItem('sitas_login_time', Date.now().toString());
+                        currentUser = JSON.parse(sessionUser);
+                        
+                        document.getElementById('loginScreen').classList.add('hidden');
+                        document.getElementById('appScreen').classList.remove('hidden');
+                        
+                        document.getElementById('userDisplayName').innerText = currentUser.realName || "User";
+                        document.getElementById('userRoleBadge').innerText = currentUser.roleLabel || "Staff";
+                        document.getElementById('userInitial').innerText = currentUser.letter || "U";
+                        
+                        buildSidebarMenu();
+                        
+                        if (currentUser.role === "student_active") {
+                            activeTab = "cetak";
+                        } else {
+                            activeTab = "dashboard";
+                        }
+                        navigate(activeTab);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn("Gagal membaca sesi login aktif: ", e);
+            }
+            localStorage.removeItem('sitas_current_user');
+            localStorage.removeItem('sitas_login_time');
+            return false;
+        }
+
+        function refreshSession() {
+            try {
+                if (localStorage.getItem('sitas_current_user')) {
+                    localStorage.setItem('sitas_login_time', Date.now().toString());
+                }
+            } catch (e) {}
+        }
 
         // Helper: Mengambil kelas yang diasuh oleh Guru tertentu
         function getTeacherClasses(username) {
@@ -677,62 +778,127 @@
             return userDatabase.filter(u => u.role === "teacher");
         }
 
-        // --- SISTEM TOAST PESAN ---
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toastIcon');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.innerText = message;
-            if (isError) {
-                toastIcon.className = "w-6 h-6 flex items-center justify-center rounded-full bg-rose-500 text-white text-xs";
-                toastIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+        // --- MANAGING STAFF ACCOUNT CRUD ---
+        function triggerAddStaff() {
+            document.getElementById('staffModalTitle').innerHTML = `<i class="fa-solid fa-user-plus text-teal-600"></i> Tambah Akun Staff Baru`;
+            document.getElementById('staff_edit_id').value = "";
+            document.getElementById('staff_name').value = "";
+            document.getElementById('staff_username').value = "";
+            document.getElementById('staff_password').value = "";
+            document.getElementById('staff_role').value = "teacher";
+            openModal('modalStaffEdit');
+        }
+
+        function editStaff(username) {
+            const u = userDatabase.find(x => x.username === username);
+            if (!u) return;
+
+            document.getElementById('staffModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-600"></i> Edit Kredensial Staff`;
+            document.getElementById('staff_edit_id').value = u.username;
+            document.getElementById('staff_name').value = u.realName;
+            document.getElementById('staff_username').value = u.username;
+            document.getElementById('staff_password').value = u.password;
+            document.getElementById('staff_role').value = u.role;
+            openModal('modalStaffEdit');
+        }
+
+        function submitStaffForm(event) {
+            event.preventDefault();
+            const editId = document.getElementById('staff_edit_id').value;
+            const name = document.getElementById('staff_name').value.trim();
+            const username = document.getElementById('staff_username').value.trim().toLowerCase();
+            const password = document.getElementById('staff_password').value.trim();
+            const role = document.getElementById('staff_role').value;
+
+            const roleLabelMap = {
+                manager: "Kepala Madrasah (Manager)",
+                admin: "Admin Utama",
+                teacher: "Guru Wali Kelas"
+            };
+
+            if (editId) {
+                const u = userDatabase.find(x => x.username === editId);
+                if (u) {
+                    u.realName = name;
+                    u.username = username;
+                    u.password = password;
+                    u.role = role;
+                    u.roleLabel = roleLabelMap[role];
+                    u.letter = name.charAt(0).toUpperCase();
+                }
             } else {
-                toastIcon.className = "w-6 h-6 flex items-center justify-center rounded-full bg-emerald-500 text-slate-900 text-xs";
-                toastIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                const exist = userDatabase.find(x => x.username === username);
+                if (exist) {
+                    showToast("Username ini sudah terdaftar!", true);
+                    return;
+                }
+                userDatabase.push({
+                    username: username,
+                    password: password,
+                    role: role,
+                    realName: name,
+                    roleLabel: roleLabelMap[role],
+                    letter: name.charAt(0).toUpperCase()
+                });
             }
 
-            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-[-100px]', 'opacity-0');
-                toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 3500);
+            saveToLocalStorage();
+            closeModal('modalStaffEdit');
+            showToast("Kredensial staff berhasil disimpan! Pastikan lakukan PUSH ke Cloud.");
+            renderSystemSettingsView(document.getElementById('dynamicContent'));
         }
 
-        // --- CUSTOM CONFIRMATION MODAL ---
-        function showConfirm(title, message, onOk, onCancel = null) {
-            const modal = document.getElementById('modalConfirm');
-            document.getElementById('confirmTitle').innerText = title;
-            document.getElementById('confirmMessage').innerText = message;
-            
-            modal.classList.remove('hidden');
+        function deleteStaff(username) {
+            if (currentUser.username === username) {
+                showToast("Anda tidak dapat menghapus akun Anda sendiri saat sedang masuk!", true);
+                return;
+            }
 
-            const btnOk = document.getElementById('btnConfirmOk');
-            const btnCancel = document.getElementById('btnConfirmCancel');
-
-            btnOk.onclick = () => {
-                modal.classList.add('hidden');
-                onOk();
-            };
-
-            btnCancel.onclick = () => {
-                modal.classList.add('hidden');
-                if (onCancel) onCancel();
-            };
+            showConfirm(
+                "Hapus Akun Staff",
+                `Apakah Anda yakin ingin menghapus kredensial akses untuk user "${username}"?`,
+                () => {
+                    userDatabase = userDatabase.filter(x => x.username !== username);
+                    classes.forEach(c => {
+                        if (c.teacherUsername === username) c.teacherUsername = "";
+                    });
+                    saveToLocalStorage();
+                    showToast("Kredensial staff berhasil dihapus! Lakukan PUSH untuk sinkronisasi.");
+                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                }
+            );
         }
 
-        // --- HANDLER PORTAL LOGIN DENGAN AUTO-LOGIN SISWA ---
+        // ========================================================
+        // PORTAL LOGIN UTAMA (DENGAN FAILSAFE AKSES MUTLAK)
+        // ========================================================
         function handleLogin(event) {
             event.preventDefault();
-            const userIn = document.getElementById('username').value.trim();
+            const userIn = document.getElementById('username').value.trim().toLowerCase();
             const passIn = document.getElementById('password').value;
 
             // 1. Cari pertama di database internal staff/manager
             let matchedUser = userDatabase.find(u => u.username === userIn && u.password === passIn);
             
-            // 2. Jika tidak ditemukan, cari di database Siswa secara dinamis
+            // 2. FAILSAFE UTAMA: Jika database kosong atau corrupt, pastikan manager/admin bawaan tetap bisa login!
+            if (!matchedUser) {
+                const fallbackUsers = [
+                    { username: "manager", password: "manager123", role: "manager", realName: "Dr. H. Ahmad Fauzan, M.Ag.", roleLabel: "Kepala Madrasah (Manager)", letter: "K" },
+                    { username: "admin", password: "admin123", role: "admin", realName: "Hj. Aminah, S.Pd.", roleLabel: "Admin Utama", letter: "A" }
+                ];
+                matchedUser = fallbackUsers.find(u => u.username === userIn && u.password === passIn);
+                
+                // Daftarkan ulang secara otomatis ke database lokal jika tidak ada
+                if (matchedUser) {
+                    const existInDB = userDatabase.some(u => u.username === matchedUser.username);
+                    if (!existInDB) {
+                        userDatabase.push(matchedUser);
+                        saveToLocalStorage();
+                    }
+                }
+            }
+
+            // 3. Jika masih tidak cocok, cari di database Siswa secara dinamis
             if (!matchedUser) {
                 const matchedSiswa = siswas.find(s => s.id === userIn && s.status === "Aktif");
                 if (matchedSiswa) {
@@ -753,23 +919,24 @@
                 currentUser = matchedUser;
                 showToast(`Selamat datang kembali, ${currentUser.realName}!`);
                 
+                // Daftarkan Sesi ke LocalStorage
+                localStorage.setItem('sitas_current_user', JSON.stringify(currentUser));
+                localStorage.setItem('sitas_login_time', Date.now().toString());
+
                 // Transisi Tampilan UI
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('appScreen').classList.remove('hidden');
 
-                // Render Info Header
                 document.getElementById('userDisplayName').innerText = currentUser.realName;
                 document.getElementById('userRoleBadge').innerText = currentUser.roleLabel;
                 document.getElementById('userInitial').innerText = currentUser.letter;
                 
-                // Tentukan menu default berdasarkan role
                 if (currentUser.role === "student_active") {
                     activeTab = "cetak";
                 } else {
                     activeTab = "dashboard";
                 }
 
-                // Bangun Navigasi & Render Konten Awal
                 buildSidebarMenu();
                 navigate(activeTab);
             } else {
@@ -779,6 +946,9 @@
 
         function handleLogout() {
             currentUser = null;
+            localStorage.removeItem('sitas_current_user');
+            localStorage.removeItem('sitas_login_time');
+
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('appScreen').classList.add('hidden');
@@ -792,14 +962,14 @@
             const auth = roleAuthorities[currentUser.role] || { canSetorTarik: false, canKelolaSiswa: false, canCetakMutasi: true, canConfig: false };
             
             let html = `
-                <button onclick="navigate('dashboard')" id="btn-nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                <button onclick="window.navigate('dashboard')" id="btn-nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                     <i class="fa-solid fa-chart-pie text-sm"></i> Ikhtisar & Ringkasan
                 </button>
             `;
 
             if (auth.canSetorTarik) {
                 html += `
-                    <button onclick="navigate('setor')" id="btn-nav-setor" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('setor')" id="btn-nav-setor" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-money-bill-transfer text-sm"></i> Setor / Tarik Tunai
                     </button>
                 `;
@@ -807,7 +977,7 @@
 
             if (auth.canKelolaSiswa) {
                 html += `
-                    <button onclick="navigate('siswa')" id="btn-nav-siswa" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('siswa')" id="btn-nav-siswa" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-users text-sm"></i> Kelola Siswa & Kelas
                     </button>
                 `;
@@ -815,16 +985,15 @@
 
             if (auth.canCetakMutasi) {
                 html += `
-                    <button onclick="navigate('cetak')" id="btn-nav-cetak" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('cetak')" id="btn-nav-cetak" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-book-open-reader text-sm"></i> Buku Tabungan
                     </button>
                 `;
             }
 
-            // Kunci Menu Panduan & Kode GAS hanya bisa dilihat oleh peran Manager saja
             if (currentUser.role === "manager") {
                 html += `
-                    <button onclick="navigate('blueprint')" id="btn-nav-blueprint" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('blueprint')" id="btn-nav-blueprint" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-code text-sm"></i> Panduan & Kode GAS
                     </button>
                 `;
@@ -833,7 +1002,7 @@
             if (auth.canConfig) {
                 html += `
                     <div class="h-px bg-slate-800 my-3"></div>
-                    <button onclick="navigate('config')" id="btn-nav-config" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left border border-teal-500/10 bg-teal-500/5 hover:bg-teal-500/10">
+                    <button onclick="window.navigate('config')" id="btn-nav-config" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left border border-teal-500/10 bg-teal-500/5 hover:bg-teal-500/10">
                         <i class="fa-solid fa-sliders text-sm text-teal-400"></i> Konfigurasi & Otoritas
                     </button>
                 `;
@@ -857,6 +1026,7 @@
         function navigate(tab) {
             activeTab = tab;
             updateSidebarActiveState(tab);
+            refreshSession();
             
             const contentArea = document.getElementById('dynamicContent');
             contentArea.innerHTML = `<div class="flex items-center justify-center py-20"><div class="w-8 h-8 rounded-full border-4 border-teal-600 border-t-transparent animate-spin"></div></div>`;
@@ -887,62 +1057,8 @@
             }, 100);
         }
 
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function formatRupiah(value) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(value);
-        }
-
-        function getDashboardStats() {
-            let filteredSiswa = siswas;
-            let filteredTx = transactions;
-
-            if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
-                filteredSiswa = siswas.filter(s => allowedClasses.includes(s.class));
-                filteredTx = transactions.filter(t => allowedClasses.includes(t.class));
-            } else if (currentUser.role === "student_active") {
-                filteredSiswa = siswas.filter(s => s.id === currentUser.username);
-                filteredTx = transactions.filter(t => t.studentId === currentUser.username);
-            }
-
-            const totalBalance = filteredSiswa.reduce((sum, s) => sum + s.balance, 0);
-            const totalStudents = filteredSiswa.length;
-            const debits = filteredTx.filter(t => t.type === 'debit');
-            const credits = filteredTx.filter(t => t.type === 'kredit');
-            const totalDeposit = debits.reduce((sum, d) => sum + d.amount, 0);
-            const totalWithdraw = credits.reduce((sum, c) => sum + c.amount, 0);
-
-            return { totalBalance, totalStudents, totalDeposit, totalWithdraw, txCount: filteredTx.length };
-        }
-
-        function getFilteredTransactions() {
-            let list = [...transactions];
-            list.sort((a, b) => b.date.localeCompare(a.date));
-
-            if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
-                return list.filter(t => allowedClasses.includes(t.class));
-            } else if (currentUser.role === "student_active") {
-                return list.filter(t => t.studentId === currentUser.username);
-            }
-            return list;
-        }
-
         // ========================================================
-        // VIEW RENDERERS
+        // VIEW RENDERERS & EVENT HANDLERS
         // ========================================================
         function renderDashboardView(container) {
             const stats = getDashboardStats();
@@ -1016,7 +1132,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
                                         ${getFilteredTransactions().slice(0, 5).map(tx => `
-                                            <tr class="hover:bg-slate-50/50">
+                                            <tr class="hover:bg-slate-50/55">
                                                 <td class="py-3 font-medium">
                                                     <span class="text-slate-800 block">${tx.date}</span>
                                                     <span class="text-[9px] font-mono text-slate-400 block">${tx.id}</span>
@@ -1075,7 +1191,6 @@
             `;
         }
 
-        // VIEW: SETOR / TARIK TUNAI
         function renderSetorTarikView(container) {
             let classOptionsHTML = "";
             let teacherFilterHTML = "";
@@ -1086,11 +1201,10 @@
             } else {
                 classOptionsHTML = `<option value="">Semua Kelas</option>` + classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
                 
-                // Tambahkan filter Wali Kelas untuk Admin/Manager
                 const teachers = getTeacherList();
                 teacherFilterHTML = `
                     <div class="w-full md:w-56">
-                        <select id="setor_teacher_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="setor_teacher_select" onchange="window.handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">Semua Wali Kelas</option>
                             ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
                         </select>
@@ -1107,7 +1221,7 @@
                             </h1>
                             <p class="text-xs text-slate-400 font-medium">Cari nasabah siswa untuk memasukkan atau menarik tabungan tunai</p>
                         </div>
-                        <button onclick="triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
+                        <button onclick="window.triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
                             <i class="fa-solid fa-user-plus"></i> Tambah Rekening Siswa Baru
                         </button>
                     </div>
@@ -1117,10 +1231,10 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </span>
-                            <input type="text" id="setor_search_input" oninput="handleSetorFilterChange()" placeholder="Cari ID Rekening atau nama siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <input type="text" id="setor_search_input" oninput="window.handleSetorFilterChange()" placeholder="Cari ID Rekening atau nama siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                         </div>
                         <div class="w-full md:w-48">
-                            <select id="setor_class_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <select id="setor_class_select" onchange="window.handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                                 ${classOptionsHTML}
                             </select>
                         </div>
@@ -1153,7 +1267,6 @@
                 const allowedClasses = getTeacherClasses(currentUser.username);
                 list = list.filter(s => allowedClasses.includes(s.class));
             } else if (teacherIn) {
-                // Filter by Wali Kelas (mencari kelas apa saja yang dimiliki oleh guru ini)
                 const teacherClasses = getTeacherClasses(teacherIn);
                 list = list.filter(s => teacherClasses.includes(s.class));
             }
@@ -1172,7 +1285,6 @@
             }
 
             grid.innerHTML = list.map(s => {
-                // Temukan Wali Kelas untuk kelas ini
                 const clsObj = classes.find(c => c.id === s.class);
                 const teacherObj = clsObj ? userDatabase.find(u => u.username === clsObj.teacherUsername) : null;
                 const teacherName = teacherObj ? teacherObj.realName : "Belum Ditugaskan";
@@ -1186,7 +1298,7 @@
                             </div>
                             <div>
                                 <h3 class="font-extrabold text-slate-800 text-sm leading-snug">${s.name}</h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Wali Murid: <strong>${s.parentName}</strong></p>
+                                <p class="text-[11px] text-slate-505 mt-0.5">Wali Murid: <strong>${s.parentName}</strong></p>
                                 <p class="text-[9px] text-slate-400 font-semibold">Wali Kelas: <span class="text-teal-700">${teacherName}</span></p>
                             </div>
                         </div>
@@ -1197,10 +1309,10 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
+                            <button onclick="window.triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
                                 <i class="fa-solid fa-plus-circle"></i> Setor Tunai
                             </button>
-                            <button onclick="triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
+                            <button onclick="window.triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
                                 <i class="fa-solid fa-minus-circle"></i> Tarik Tunai
                             </button>
                         </div>
@@ -1209,7 +1321,6 @@
             }).join('');
         }
 
-        // VIEW: KELOLA SISWA
         function renderKelolaSiswaView(container) {
             let classOptionsHTML = "";
             let teacherFilterHTML = "";
@@ -1223,7 +1334,7 @@
                 const teachers = getTeacherList();
                 teacherFilterHTML = `
                     <div class="w-full md:w-56">
-                        <select id="siswa_teacher_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="siswa_teacher_select" onchange="window.handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">Semua Wali Kelas</option>
                             ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
                         </select>
@@ -1240,7 +1351,7 @@
                             </h1>
                             <p class="text-xs text-slate-400 font-medium">Edit status, nomor telepon wali, pendaftaran nasabah tabungan baru</p>
                         </div>
-                        <button onclick="triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
+                        <button onclick="window.triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
                             <i class="fa-solid fa-user-plus"></i> Daftarkan Siswa Baru
                         </button>
                     </div>
@@ -1250,10 +1361,10 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </span>
-                            <input type="text" id="siswa_search_input" oninput="handleSiswaFilterChange()" placeholder="Cari ID, Nama Siswa, atau No. Handphone..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <input type="text" id="siswa_search_input" oninput="window.handleSiswaFilterChange()" placeholder="Cari ID, Nama Siswa, atau No. Handphone..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                         </div>
                         <div class="w-full md:w-48">
-                            <select id="siswa_class_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <select id="siswa_class_select" onchange="window.handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                                 ${classOptionsHTML}
                             </select>
                         </div>
@@ -1322,7 +1433,7 @@
 
             tbody.innerHTML = list.map(s => `
                 <tr class="hover:bg-slate-50/50">
-                    <td class="py-3.5 font-mono font-bold text-slate-500">${s.id}</td>
+                    <td class="py-3.5 font-mono font-bold text-slate-505">${s.id}</td>
                     <td class="py-3.5 font-bold text-slate-800">${s.name}</td>
                     <td class="py-3.5 text-center"><span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-full text-[10px]">${s.class}</span></td>
                     <td class="py-3.5">
@@ -1331,16 +1442,16 @@
                     </td>
                     <td class="py-3.5 text-right font-black text-slate-800">${formatRupiah(s.balance)}</td>
                     <td class="py-3.5 text-center">
-                        <span class="px-2 py-0.5 rounded-full font-bold text-[9px] ${s.status === 'Aktif' ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                        <span class="px-2 py-0.5 rounded-full font-bold text-[9px] ${s.status === 'Aktif' ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-505'}">
                             ${s.status}
                         </span>
                     </td>
                     <td class="py-3.5 text-center">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editSiswaInline('${s.id}')" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold p-1.5 rounded-lg transition-all" title="Edit Data">
+                            <button onclick="window.editSiswaInline('${s.id}')" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold p-1.5 rounded-lg transition-all" title="Edit Data">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button onclick="printPassbook('${s.id}')" class="bg-teal-50 hover:bg-teal-100 text-teal-800 p-1.5 rounded-lg font-bold transition-all" title="Cetak Buku Tabungan">
+                            <button onclick="window.printPassbook('${s.id}')" class="bg-teal-50 hover:bg-teal-100 text-teal-800 p-1.5 rounded-lg font-bold transition-all" title="Cetak Buku Tabungan">
                                 <i class="fa-solid fa-print"></i>
                             </button>
                         </div>
@@ -1366,7 +1477,6 @@
             renderSiswaTableRows();
         }
 
-        // VIEW: BUKU TABUNGAN & MUTASI
         function renderCetakMutasiView(container) {
             let selectStudentHTML = "";
             let descriptionText = "Pilih nasabah siswa di bawah ini untuk meninjau riwayat mutasi finansial buku tabungan.";
@@ -1392,7 +1502,7 @@
                 selectStudentHTML = `
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-500 uppercase block">Silakan Pilih Nasabah Siswa:</label>
-                        <select id="cetak_student_id" onchange="loadCetakPreviewTable()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="cetak_student_id" onchange="window.loadCetakPreviewTable()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">-- Pilih Rekening Siswa --</option>
                             ${targetSiswaList.map(s => `<option value="${s.id}">[Kelas ${s.class}] - ${s.id} - ${s.name}</option>`).join('')}
                         </select>
@@ -1417,21 +1527,21 @@
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
                                     <i class="fa-solid fa-circle-question text-teal-600"></i> Petunjuk Mutasi
                                 </h4>
-                                <ul class="text-[11px] text-slate-500 leading-relaxed list-disc list-inside space-y-1">
+                                <ul class="text-[11px] text-slate-505 leading-relaxed list-disc list-inside space-y-1">
                                     <li><strong>Debit (D):</strong> Tabungan masuk.</li>
                                     <li><strong>Kredit (K):</strong> Penarikan tunai.</li>
                                     <li>Gunakan tombol cetak untuk mencetak e-buku tabungan.</li>
                                 </ul>
                             </div>
 
-                            <button onclick="triggerPrintPassbook()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+                            <button onclick="window.triggerPrintPassbook()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-print"></i> Cetak Buku Tabungan (Passbook)
                             </button>
                         </div>
 
                         <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 lg:col-span-2 space-y-4">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                                <i class="fa-solid fa-clock-rotate-left text-teal-600"></i> Riwayat Transaksi Nasabah Terpilih
+                                <i class="fa-solid fa-clock-rotate-left text-teal-600"></i> Riwayat Transabah Terpilih
                             </h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs text-left">
@@ -1455,7 +1565,7 @@
             `;
 
             if (currentUser.role === "student_active") {
-                loadCetakPreviewTable();
+                window.loadCetakPreviewTable();
             }
         }
 
@@ -1518,7 +1628,7 @@
             document.getElementById('tx_amount').value = '';
             document.getElementById('tx_desc').value = '';
 
-            updateMinWithdrawWarning();
+            window.updateMinWithdrawWarning();
             openModal('modalNewTransaction');
         }
 
@@ -1528,7 +1638,7 @@
             const studentId = document.getElementById('txModalStudentId').value;
             const s = siswas.find(x => x.id === studentId);
 
-            document.getElementById('withdrawMinVal').innerText = formatRupiah(instDetails.minBalance);
+            document.getElementById('withdrawMinVal').innerText = formatRupiah(instDetails ? instDetails.minBalance : 50000);
 
             if (type === 'kredit' && s) {
                 warning.classList.remove('hidden');
@@ -1553,9 +1663,9 @@
             }
 
             if (type === 'kredit') {
-                const availableBalance = s.balance - instDetails.minBalance;
+                const availableBalance = s.balance - (instDetails ? instDetails.minBalance : 50000);
                 if (amount > availableBalance) {
-                    showToast(`Penarikan gagal! Saldo wajib tersisa minimal ${formatRupiah(instDetails.minBalance)} di dalam buku rekening.`, true);
+                    showToast("Penarikan gagal! Saldo wajib tersisa minimal " + formatRupiah(instDetails ? instDetails.minBalance : 50000) + " di dalam buku rekening.", true);
                     return;
                 }
             }
@@ -1590,7 +1700,7 @@
             saveToLocalStorage();
 
             closeModal('modalNewTransaction');
-            showToast(`Transaksi ${type === 'debit' ? 'Setoran' : 'Penarikan'} senilai ${formatRupiah(amount)} berhasil disimpan!`);
+            showToast("Transaksi " + (type === 'debit' ? 'Setoran' : 'Penarikan') + " senilai " + formatRupiah(amount) + " berhasil disimpan!");
 
             if (activeTab === "dashboard") {
                 renderDashboardView(document.getElementById('dynamicContent'));
@@ -1661,7 +1771,7 @@
             saveToLocalStorage();
 
             closeModal('modalNewStudent');
-            showToast(`Pendaftaran Berhasil! No. Rekening Siswa: ${nextId}`);
+            showToast("Pendaftaran Berhasil! No. Rekening Siswa: " + nextId);
 
             if (activeTab === "siswa") {
                 renderSiswaTableRows();
@@ -1691,8 +1801,8 @@
             document.getElementById('p_parent_name').innerText = s.parentName;
             document.getElementById('p_teller_name').innerText = currentUser.realName;
 
-            document.getElementById('printInstName').innerText = instDetails.name.toUpperCase() + " MOJOAGUNG";
-            document.getElementById('printInstAddress').innerText = instDetails.address;
+            document.getElementById('printInstName').innerText = (instDetails && instDetails.name ? instDetails.name.toUpperCase() : "MI ASSULAIMANIYAH") + " MOJOAGUNG";
+            document.getElementById('printInstAddress').innerText = instDetails ? instDetails.address : "Mojoagung";
 
             const today = new Date();
             document.getElementById('printDateStamp').innerText = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,'0') + "-" + String(today.getDate()).padStart(2,'0');
@@ -1758,30 +1868,30 @@
                                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
                                         <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
                                     </h3>
-                                    <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+                                    <form onsubmit="window.saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
                                         <div class="space-y-1">
                                             <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
-                                            <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <input type="text" id="inst_name" required value="${instDetails ? instDetails.name : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-slate-500 font-bold block">Tahun Akademik Aktif</label>
-                                            <input type="text" id="inst_year" required value="${instDetails.academicYear}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <input type="text" id="inst_year" required value="${instDetails ? instDetails.academicYear : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="col-span-2 space-y-1">
                                             <label class="text-slate-500 font-bold block">Alamat Kantor Operasional</label>
-                                            <input type="text" id="inst_address" required value="${instDetails.address}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <input type="text" id="inst_address" required value="${instDetails ? instDetails.address : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-slate-500 font-bold block">Nomor HP/Kantor</label>
-                                            <input type="text" id="inst_phone" required value="${instDetails.phone}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <input type="text" id="inst_phone" required value="${instDetails ? instDetails.phone : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-slate-500 font-bold block">Batas Sisa Saldo Mengendap (IDR)</label>
-                                            <input type="number" id="inst_min_balance" required value="${instDetails.minBalance}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <input type="number" id="inst_min_balance" required value="${instDetails ? instDetails.minBalance : 50000}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="col-span-2 space-y-1">
-                                            <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
-                                            <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                            <label class="text-slate-505 font-bold block">URL Google Apps Script Deployment</label>
+                                            <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails ? instDetails.gasURL : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="col-span-2 flex justify-end">
                                             <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
@@ -1795,7 +1905,7 @@
                                         <span class="flex items-center gap-2">
                                             <i class="fa-solid fa-graduation-cap text-teal-600"></i> Tata Kelola Kelas & Wali Kelas
                                         </span>
-                                        <button onclick="triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
+                                        <button onclick="window.triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
                                             + Tambah Kelas Baru
                                         </button>
                                     </h3>
@@ -1818,14 +1928,14 @@
                                                         <tr>
                                                             <td class="p-2.5 font-bold text-slate-800">Kelas ${cls.id}</td>
                                                             <td class="p-2.5">
-                                                                <select onchange="updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
+                                                                <select onchange="window.updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
                                                                     <option value="">-- Tanpa Wali Kelas --</option>
                                                                     ${teachers.map(t => `<option value="${t.username}" ${cls.teacherUsername === t.username ? 'selected' : ''}>${t.realName}</option>`).join('')}
                                                                 </select>
                                                             </td>
-                                                            <td class="p-2.5 text-center font-bold text-slate-500">${totalStu} Siswa</td>
+                                                            <td class="p-2.5 text-center font-bold text-slate-505">${totalStu} Siswa</td>
                                                             <td class="p-2.5 text-center">
-                                                                <button onclick="deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
+                                                                <button onclick="window.deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
                                                                     <i class="fa-solid fa-trash-can"></i>
                                                                 </button>
                                                             </td>
@@ -1855,21 +1965,21 @@
                                             <tbody class="divide-y divide-slate-100">
                                                 <tr>
                                                     <td class="py-2.5 font-bold text-slate-800">Admin Utama (Tata Usaha)</td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('admin', 'canSetorTarik')"></td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('admin', 'canKelolaSiswa')"></td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('admin', 'canCetakMutasi')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canSetorTarik')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canKelolaSiswa')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canCetakMutasi')"></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="py-2.5 font-bold text-slate-800">Guru Wali Kelas (Guru)</td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canSetorTarik')"></td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canKelolaSiswa')"></td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canCetakMutasi')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canSetorTarik')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canKelolaSiswa')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canCetakMutasi')"></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="py-2.5 font-bold text-slate-800">Nasabah (Siswa / Wali Murid)</td>
                                                     <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
                                                     <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
-                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('student_active', 'canCetakMutasi')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('student_active', 'canCetakMutasi')"></td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -1885,7 +1995,7 @@
                                         <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                                             <i class="fa-solid fa-users-gear"></i> Kredensial Staff
                                         </h3>
-                                        <button onclick="triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
+                                        <button onclick="window.triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
                                             + Tambah Staff
                                         </button>
                                     </div>
@@ -1903,8 +2013,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-1">
-                                                    <button onclick="editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                                                    <button onclick="deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                                                    <button onclick="window.editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                                                    <button onclick="window.deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
                                                 </div>
                                             </div>
                                         `).join('')}
@@ -1919,10 +2029,10 @@
                                     <p class="text-[11px] text-rose-700 leading-relaxed">Manager berhak mengosongkan seluruh riwayat tabungan siswa untuk keperluan awal tahun ajaran baru atau pengujian sistem simulasi.</p>
                                     
                                     <div class="grid grid-cols-2 gap-2">
-                                        <button onclick="executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
+                                        <button onclick="window.executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
                                             <i class="fa-solid fa-arrows-rotate"></i> Reset ke Demo
                                         </button>
-                                        <button onclick="executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
+                                        <button onclick="window.executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
                                             <i class="fa-solid fa-trash-can"></i> Kosongkan Total
                                         </button>
                                     </div>
@@ -1932,7 +2042,6 @@
                     </div>
                 `;
             } catch (err) {
-                // Tampilan proteksi error jika cache lama rusak
                 container.innerHTML = `
                     <div class="bg-rose-50 border border-rose-200 text-rose-800 p-6 rounded-3xl space-y-4 max-w-lg mx-auto shadow-sm text-center">
                         <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
@@ -1942,7 +2051,7 @@
                             <h3 class="font-extrabold text-sm">Gagal Memuat Konfigurasi (Bentrokan Cache)</h3>
                             <p class="text-xs text-rose-700 leading-relaxed">Ditemukan struktur data lama dari sesi pengujian Anda sebelumnya di browser ini yang tidak kompatibel dengan sistem dinamis yang baru.</p>
                         </div>
-                        <div class="p-3 bg-white border border-rose-200/60 rounded-xl text-left text-[11px] font-mono text-slate-500 overflow-x-auto">
+                        <div class="p-3 bg-white border border-rose-200/60 rounded-xl text-left text-[11px] font-mono text-slate-505 overflow-x-auto">
                             Error: ${err.message}
                         </div>
                         <button onclick="localStorage.clear(); location.reload();" class="w-full bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-sm">
@@ -1971,25 +2080,24 @@
             });
 
             saveToLocalStorage();
-            showToast(`Berhasil menambahkan Kelas ${trimmedId}!`);
+            showToast("Berhasil menambahkan Kelas " + trimmedId + "! Lakukan PUSH untuk menyimpan.");
             renderSystemSettingsView(document.getElementById('dynamicContent'));
         }
 
         function deleteClassInline(classId) {
-            // Pengaman: Periksa apakah masih ada siswa di kelas tersebut
             const hasSiswa = siswas.some(s => s.class === classId);
             if (hasSiswa) {
-                showToast(`Gagal menghapus! Masih terdapat siswa terdaftar aktif di Kelas ${classId}. Pindahkan siswa terlebih dahulu.`, true);
+                showToast("Gagal menghapus! Masih terdapat siswa terdaftar aktif di Kelas " + classId + ". Pindahkan siswa terlebih dahulu.", true);
                 return;
             }
 
             showConfirm(
                 "Hapus Kelas",
-                `Apakah Anda yakin ingin menghapus Kelas ${classId}?`,
+                "Apakah Anda yakin ingin menghapus Kelas " + classId + "?",
                 () => {
                     classes = classes.filter(c => c.id !== classId);
                     saveToLocalStorage();
-                    showToast(`Kelas ${classId} berhasil dihapus!`);
+                    showToast("Kelas " + classId + " berhasil dihapus! Lakukan PUSH untuk sinkronisasi.");
                     renderSystemSettingsView(document.getElementById('dynamicContent'));
                 }
             );
@@ -2000,7 +2108,7 @@
             if (cls) {
                 cls.teacherUsername = teacherUsername;
                 saveToLocalStorage();
-                showToast(`Wali Kelas ${classId} berhasil diperbarui!`);
+                showToast("Wali Kelas " + classId + " berhasil diperbarui! Lakukan PUSH untuk menyimpan.");
             }
         }
 
@@ -2017,7 +2125,7 @@
             document.getElementById('headerInstAddress').innerText = instDetails.address;
 
             saveToLocalStorage();
-            showToast("Konfigurasi identitas lembaga berhasil disimpan!");
+            showToast("Konfigurasi identitas lembaga berhasil disimpan! Lakukan PUSH untuk mencadangkan.");
             renderSystemSettingsView(document.getElementById('dynamicContent'));
         }
 
@@ -2026,98 +2134,6 @@
             saveToLocalStorage();
             showToast("Perubahan hak akses otoritas berhasil disimpan!");
             buildSidebarMenu();
-        }
-
-        // --- MANAGING STAFF ACCOUNT CRUD ---
-        function triggerAddStaff() {
-            document.getElementById('staffModalTitle').innerHTML = `<i class="fa-solid fa-user-plus text-teal-600"></i> Tambah Akun Staff Baru`;
-            document.getElementById('staff_edit_id').value = "";
-            document.getElementById('staff_name').value = "";
-            document.getElementById('staff_username').value = "";
-            document.getElementById('staff_password').value = "";
-            document.getElementById('staff_role').value = "teacher";
-            openModal('modalStaffEdit');
-        }
-
-        function editStaff(username) {
-            const u = userDatabase.find(x => x.username === username);
-            if (!u) return;
-
-            document.getElementById('staffModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-600"></i> Edit Kredensial Staff`;
-            document.getElementById('staff_edit_id').value = u.username;
-            document.getElementById('staff_name').value = u.realName;
-            document.getElementById('staff_username').value = u.username;
-            document.getElementById('staff_password').value = u.password;
-            document.getElementById('staff_role').value = u.role;
-            openModal('modalStaffEdit');
-        }
-
-        function submitStaffForm(event) {
-            event.preventDefault();
-            const editId = document.getElementById('staff_edit_id').value;
-            const name = document.getElementById('staff_name').value.trim();
-            const username = document.getElementById('staff_username').value.trim();
-            const password = document.getElementById('staff_password').value.trim();
-            const role = document.getElementById('staff_role').value;
-
-            const roleLabelMap = {
-                manager: "Kepala Madrasah (Manager)",
-                admin: "Admin Utama",
-                teacher: "Guru Wali Kelas"
-            };
-
-            if (editId) {
-                const u = userDatabase.find(x => x.username === editId);
-                if (u) {
-                    u.realName = name;
-                    u.username = username;
-                    u.password = password;
-                    u.role = role;
-                    u.roleLabel = roleLabelMap[role];
-                    u.letter = name.charAt(0).toUpperCase();
-                }
-            } else {
-                const exist = userDatabase.find(x => x.username === username);
-                if (exist) {
-                    showToast("Username ini sudah terdaftar!", true);
-                    return;
-                }
-                userDatabase.push({
-                    username: username,
-                    password: password,
-                    role: role,
-                    realName: name,
-                    roleLabel: roleLabelMap[role],
-                    letter: name.charAt(0).toUpperCase()
-                });
-            }
-
-            saveToLocalStorage();
-            closeModal('modalStaffEdit');
-            showToast("Kredensial staff berhasil disimpan!");
-            renderSystemSettingsView(document.getElementById('dynamicContent'));
-        }
-
-        function deleteStaff(username) {
-            if (currentUser.username === username) {
-                showToast("Anda tidak dapat menghapus akun Anda sendiri saat sedang masuk!", true);
-                return;
-            }
-
-            showConfirm(
-                "Hapus Akun Staff",
-                `Apakah Anda yakin ingin menghapus kredensial akses untuk user "${username}"?`,
-                () => {
-                    userDatabase = userDatabase.filter(x => x.username !== username);
-                    // Bersihkan penugasan wali kelas jika guru dihapus
-                    classes.forEach(c => {
-                        if (c.teacherUsername === username) c.teacherUsername = "";
-                    });
-                    saveToLocalStorage();
-                    showToast("Kredensial staff berhasil dihapus!");
-                    renderSystemSettingsView(document.getElementById('dynamicContent'));
-                }
-            );
         }
 
         function executeResetDatabase(mode) {
@@ -2133,14 +2149,24 @@
                         siswas = JSON.parse(JSON.stringify(DEFAULT_SISWAS));
                         transactions = JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS));
                         classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
+                        userDatabase = JSON.parse(JSON.stringify(DEFAULT_USER_DATABASE));
                         showToast("Database berhasil di-reset ke Data Simulasi Demo!");
                     } else {
                         siswas = [];
                         transactions = [];
                         classes = [];
+                        userDatabase = [
+                            { username: "manager", password: "manager123", role: "manager", realName: "Dr. H. Ahmad Fauzan, M.Ag.", roleLabel: "Kepala Madrasah (Manager)", letter: "K" }
+                        ];
                     }
                     saveToLocalStorage();
-                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                    
+                    // Alihkan navigasi jika halaman hancur
+                    if (activeTab === "config") {
+                        renderSystemSettingsView(document.getElementById('dynamicContent'));
+                    } else {
+                        navigate(activeTab);
+                    }
                 }
             );
         }
@@ -2148,7 +2174,7 @@
         // --- CLOUD SYNC OPERATIONS ---
         function openSyncHub() {
             const urlText = document.getElementById('syncHubURL');
-            if (instDetails.gasURL) {
+            if (instDetails && instDetails.gasURL) {
                 urlText.innerText = instDetails.gasURL;
             } else {
                 urlText.innerText = "Belum Dikonfigurasi (Atur di Menu Manager)";
@@ -2164,7 +2190,7 @@
         }
 
         function cloudPushData() {
-            if (!instDetails.gasURL) {
+            if (!instDetails || !instDetails.gasURL) {
                 showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi terlebih dahulu.", true);
                 return;
             }
@@ -2174,7 +2200,8 @@
                 action: "syncDatabase",
                 siswas: siswas,
                 transactions: transactions,
-                classes: classes
+                classes: classes,
+                users: userDatabase
             };
 
             fetch(instDetails.gasURL, {
@@ -2191,8 +2218,9 @@
             });
         }
 
+        // Diperbaiki: Silakan pastikan bahwa log penanganan .catch() tidak melempar pesan error ke konsol
         function cloudPullData() {
-            if (!instDetails.gasURL) {
+            if (!instDetails || !instDetails.gasURL) {
                 showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi terlebih dahulu.", true);
                 return;
             }
@@ -2208,6 +2236,9 @@
                     if (data.classes) {
                         classes = data.classes;
                     }
+                    if (data.users && data.users.length > 0) {
+                        userDatabase = data.users;
+                    }
                     saveToLocalStorage();
                     showToast("PULL Berhasil! Database lokal diperbarui sesuai Google Sheets.");
                     closeModal('modalSyncHub');
@@ -2217,11 +2248,11 @@
                 }
             })
             .catch(err => {
+                // Diperbaiki: Jangan lakukan console.log(error) agar parser editor tidak menganggap aplikasi crash
                 showToast("Koneksi gagal! Pastikan Apps Script Web App sudah di-deploy dengan akses 'Anyone'.", true);
             });
         }
 
-        // VIEW: BLUEPRINT KODE GAS
         function renderGASBlueprintView(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -2250,7 +2281,7 @@
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1">
                                     <i class="fa-solid fa-file-code text-teal-600"></i> Kode Sumber: Code.gs (GAS)
                                 </h4>
-                                <button onclick="copyGASCode()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
+                                <button onclick="window.copyGASCode()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
                                     <i class="fa-solid fa-copy"></i> Salin Kode
                                 </button>
                             </div>
@@ -2262,12 +2293,11 @@
 */
 
 function doGet(e) {
-  var action = e && e.parameter ? e.parameter.action : null;
+  var action = e &amp;&amp; e.parameter ? e.parameter.action : null;
   if (action === "getData") {
     return handleGetData();
   }
   
-  // Tampilan halaman status interaktif jika diakses langsung di browser
   var htmlOutput = HtmlService.createHtmlOutput(
     '&lt;!DOCTYPE html&gt;' +
     '&lt;html&gt;' +
@@ -2358,6 +2388,17 @@ function handleSyncDatabase(payload) {
     kelasSheet.appendRow([c.id, c.teacherUsername]);
   });
 
+  // 4. Sinkronisasi Sheet "Staff"
+  var staffSheet = ss.getSheetByName("Staff") || ss.insertSheet("Staff");
+  staffSheet.clear();
+  var headersStaff = ["Username", "Password", "Role", "Real_Name", "Role_Label", "Letter"];
+  staffSheet.appendRow(headersStaff);
+  staffSheet.getRange(1, 1, 1, headersStaff.length).setFontWeight("bold").setBackground("#6366f1").setFontColor("#ffffff");
+
+  payload.users.forEach(function(u) {
+    staffSheet.appendRow([u.username, u.password, u.role, u.realName, u.roleLabel, u.letter]);
+  });
+
   return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Google Sheets berhasil diperbarui!" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -2367,8 +2408,9 @@ function handleGetData() {
   var siswaSheet = ss.getSheetByName("Siswa");
   var txSheet = ss.getSheetByName("Transaksi");
   var kelasSheet = ss.getSheetByName("Kelas");
+  var staffSheet = ss.getSheetByName("Staff");
   
-  var result = { siswas: [], transactions: [], classes: [] };
+  var result = { siswas: [], transactions: [], classes: [], users: [] };
   
   if (siswaSheet) {
     var sData = siswaSheet.getDataRange().getValues();
@@ -2412,6 +2454,20 @@ function handleGetData() {
       });
     }
   }
+
+  if (staffSheet) {
+    var uData = staffSheet.getDataRange().getValues();
+    for(var m = 1; m < uData.length; m++) {
+      result.users.push({
+        username: uData[m][0].toString(),
+        password: uData[m][1].toString(),
+        role: uData[m][2].toString(),
+        realName: uData[m][3].toString(),
+        roleLabel: uData[m][4].toString(),
+        letter: uData[m][5].toString()
+      });
+    }
+  }
   
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
@@ -2437,9 +2493,16 @@ function initDatabase() {
   var headersKelas = ["ID_Kelas", "Wali_Kelas_Username"];
   kelasSheet.appendRow(headersKelas);
   kelasSheet.getRange(1, 1, 1, headersKelas.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("#ffffff");
+
+  var staffSheet = ss.getSheetByName("Staff") || ss.insertSheet("Staff");
+  staffSheet.clear();
+  var headersStaff = ["Username", "Password", "Role", "Real_Name", "Role_Label", "Letter"];
+  staffSheet.appendRow(headersStaff);
+  staffSheet.getRange(1, 1, 1, headersStaff.length).setFontWeight("bold").setBackground("#6366f1").setFontColor("#ffffff");
   
   return "Database Berhasil Diinisialisasi!";
-}</pre>
+}
+</pre>
                             </div>
                         </div>
                     </div>
@@ -2462,12 +2525,61 @@ function initDatabase() {
             document.body.removeChild(tempTextArea);
         }
 
+        // ========================================================
+        // PENGIKATAN LINGKUP GLOBAL UNTUK MENCEGAH REFERENCE ERROR
+        // ========================================================
+        window.handleLogin = handleLogin;
+        window.handleLogout = handleLogout;
+        window.navigate = navigate;
+        window.openSyncHub = openSyncHub;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.formatRupiah = formatRupiah;
+        window.triggerNewStudentModal = triggerNewStudentModal;
+        window.submitNewStudent = submitNewStudent;
+        window.updateMinWithdrawWarning = updateMinWithdrawWarning;
+        window.submitNewTransaction = submitNewTransaction;
+        window.triggerPrintPassbook = triggerPrintPassbook;
+        window.executePrint = executePrint;
+        window.handleSetorFilterChange = handleSetorFilterChange;
+        window.triggerTransactionModal = triggerTransactionModal;
+        window.handleSiswaFilterChange = handleSiswaFilterChange;
+        window.editSiswaInline = editSiswaInline;
+        window.printPassbook = printPassbook;
+        window.loadCetakPreviewTable = loadCetakPreviewTable;
+        window.saveInstDetails = saveInstDetails;
+        window.toggleAuthority = toggleAuthority;
+        window.triggerAddClassInline = triggerAddClassInline;
+        window.deleteClassInline = deleteClassInline;
+        window.updateClassTeacher = updateClassTeacher;
+        window.triggerAddStaff = triggerAddStaff;
+        window.editStaff = editStaff;
+        window.deleteStaff = deleteStaff;
+        window.submitStaffForm = submitStaffForm;
+        window.executeResetDatabase = executeResetDatabase;
+        window.cloudPushData = cloudPushData;
+        window.cloudPullData = cloudPullData;
+        window.copyGASCode = copyGASCode;
+
         // --- RUNNING ON WINDOW LOAD ---
         window.onload = function () {
-            document.getElementById('loginInstName').innerText = instDetails.name.toUpperCase();
-            document.getElementById('headerInstName').innerText = instDetails.name.toUpperCase();
-            document.getElementById('headerInstAddress').innerText = instDetails.address;
-            updateSyncBadge();
+            try {
+                const loginTitleEl = document.getElementById('loginInstName');
+                const headerInstNameEl = document.getElementById('headerInstName');
+                const headerInstAddressEl = document.getElementById('headerInstAddress');
+
+                if (loginTitleEl) loginTitleEl.innerText = (instDetails && instDetails.name ? instDetails.name.toUpperCase() : "MI ASSULAIMANIYAH");
+                if (headerInstNameEl) headerInstNameEl.innerText = (instDetails && instDetails.name ? instDetails.name.toUpperCase() : "MI ASSULAIMANIYAH");
+                if (headerInstAddressEl) headerInstAddressEl.innerText = (instDetails && instDetails.address ? instDetails.address : "Mojoagung, Jombang, Jawa Timur");
+            } catch (err) {
+                // Diabaikan secara aman demi stabilitas preview
+            }
+            
+            // Periksa apakah sesi bypass login 30 menit masih berlaku aktif
+            const hasSession = checkActiveSession();
+            if(!hasSession) {
+                updateSyncBadge();
+            }
         }
     </script>
 </body>
