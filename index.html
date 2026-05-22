@@ -140,7 +140,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                             <i class="fa-solid fa-user text-xs"></i>
                         </span>
-                        <input type="text" id="username" required placeholder="Contoh: manager, admin, atau No. Rekening Siswa" 
+                        <input type="text" id="username" required placeholder="Contoh: manager, admin, atau No. Rekening" 
                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
                     </div>
                 </div>
@@ -588,16 +588,84 @@
         let currentUser = null;
         let activeTab = "dashboard";
 
-        // Fungsi Simpan ke LocalStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('sitas_siswas', JSON.stringify(siswas));
-            localStorage.setItem('sitas_transactions', JSON.stringify(transactions));
-            localStorage.setItem('sitas_classes', JSON.stringify(classes));
-            localStorage.setItem('sitas_users', JSON.stringify(userDatabase));
-            localStorage.setItem('sitas_authorities', JSON.stringify(roleAuthorities));
-            localStorage.setItem('sitas_inst', JSON.stringify(instDetails));
-            updateSyncBadge();
+        // ========================================================
+        // FITUR SELF-HEALING: MENGATASI SCHEMA MISMATCH DATA LAMA
+        // ========================================================
+        function healDatabaseSchemas() {
+            let changesMade = false;
+
+            // 1. Pastikan instDetails memiliki key baru
+            if (instDetails && instDetails.gasURL === undefined) {
+                instDetails.gasURL = "";
+                changesMade = true;
+            }
+
+            // 2. Migrasikan peran lama 'teacher_3a' ke peran baru 'teacher' di database pengguna
+            if (Array.isArray(userDatabase)) {
+                userDatabase.forEach(u => {
+                    if (u.role === "teacher_3a") {
+                        u.role = "teacher";
+                        u.roleLabel = "Guru Wali Kelas";
+                        changesMade = true;
+                    }
+                });
+            } else {
+                userDatabase = JSON.parse(JSON.stringify(DEFAULT_USER_DATABASE));
+                changesMade = true;
+            }
+
+            // 3. Pastikan skema roleAuthorities mendukung peran 'teacher' bukan 'teacher_3a'
+            if (roleAuthorities) {
+                if (!roleAuthorities.teacher) {
+                    roleAuthorities.teacher = roleAuthorities.teacher_3a || { 
+                        canSetorTarik: false, 
+                        canKelolaSiswa: true, 
+                        canCetakMutasi: true, 
+                        canConfig: false, 
+                        canResetDatabase: false, 
+                        canManageStaff: false 
+                    };
+                    delete roleAuthorities.teacher_3a;
+                    changesMade = true;
+                }
+                
+                // Lengkapi nilai default jika key baru kosong
+                ["admin", "teacher", "manager"].forEach(role => {
+                    if (roleAuthorities[role]) {
+                        if (roleAuthorities[role].canResetDatabase === undefined) {
+                            roleAuthorities[role].canResetDatabase = (role === "manager");
+                            changesMade = true;
+                        }
+                        if (roleAuthorities[role].canManageStaff === undefined) {
+                            roleAuthorities[role].canManageStaff = (role === "manager");
+                            changesMade = true;
+                        }
+                    }
+                });
+            } else {
+                roleAuthorities = JSON.parse(JSON.stringify(DEFAULT_ROLE_AUTHORITIES));
+                changesMade = true;
+            }
+
+            // 4. Pastikan data tabel kelas dinamis ada
+            if (!classes || !Array.isArray(classes)) {
+                classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
+                changesMade = true;
+            }
+
+            if (changesMade) {
+                localStorage.setItem('sitas_siswas', JSON.stringify(siswas));
+                localStorage.setItem('sitas_transactions', JSON.stringify(transactions));
+                localStorage.setItem('sitas_classes', JSON.stringify(classes));
+                localStorage.setItem('sitas_users', JSON.stringify(userDatabase));
+                localStorage.setItem('sitas_authorities', JSON.stringify(roleAuthorities));
+                localStorage.setItem('sitas_inst', JSON.stringify(instDetails));
+                console.log("SITAS: Skema database berhasil diperbaiki & diperbarui secara otomatis!");
+            }
         }
+
+        // Panggil fungsi penyembuhan skema saat load halaman
+        healDatabaseSchemas();
 
         // Helper: Mengambil kelas yang diasuh oleh Guru tertentu
         function getTeacherClasses(username) {
@@ -1667,201 +1735,223 @@
             }, 350);
         }
 
-        // VIEW: KONFIGURASI MANAGER
+        // VIEW: KONFIGURASI MANAGER (DENGAN PROTEKSI ERROR TRY-CATCH)
         function renderSystemSettingsView(container) {
-            const teachers = getTeacherList();
+            try {
+                const teachers = getTeacherList();
 
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <div>
-                        <h1 class="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5">
-                            <i class="fa-solid fa-sliders text-teal-600"></i> Menu Pengaturan & Otoritas Sistem
-                        </h1>
-                        <p class="text-xs text-slate-400 font-medium">Halaman kendali utama Kepala Madrasah untuk mengatur identitas madrasah, batasan transaksi, hak akses peran, tingkat kelas, dan database</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- PANEL KIRI (2 KOLOM): IDENTITAS & HAK AKSES -->
-                        <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 space-y-5 lg:col-span-2">
-                            
-                            <!-- BAGIAN A: DETAIL IDENTITAS -->
-                            <div>
-                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                    <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
-                                </h3>
-                                <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
-                                    <div class="space-y-1">
-                                        <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
-                                        <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-slate-500 font-bold block">Tahun Akademik Aktif</label>
-                                        <input type="text" id="inst_year" required value="${instDetails.academicYear}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="col-span-2 space-y-1">
-                                        <label class="text-slate-500 font-bold block">Alamat Kantor Operasional</label>
-                                        <input type="text" id="inst_address" required value="${instDetails.address}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-slate-500 font-bold block">Nomor HP/Kantor</label>
-                                        <input type="text" id="inst_phone" required value="${instDetails.phone}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-slate-500 font-bold block">Batas Sisa Saldo Mengendap (IDR)</label>
-                                        <input type="number" id="inst_min_balance" required value="${instDetails.minBalance}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="col-span-2 space-y-1">
-                                        <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
-                                        <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    </div>
-                                    <div class="col-span-2 flex justify-end">
-                                        <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- BAGIAN B: MANAJEMEN TINGKAT KELAS & WALI KELAS -->
-                            <div class="pt-5 border-t border-slate-100">
-                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between gap-2 mb-3">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fa-solid fa-graduation-cap text-teal-600"></i> Tata Kelola Kelas & Wali Kelas
-                                    </span>
-                                    <button onclick="triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
-                                        + Tambah Kelas Baru
-                                    </button>
-                                </h3>
-                                <p class="text-[11px] text-slate-400 mb-3 font-semibold">Tentukan penugasan Wali Kelas secara dinamis untuk setiap tingkatan kelas.</p>
-                                
-                                <div class="overflow-x-auto max-h-[250px] border border-slate-100 rounded-xl">
-                                    <table class="w-full text-xs text-left">
-                                        <thead class="bg-slate-50">
-                                            <tr class="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
-                                                <th class="p-2.5">NAMA KELAS</th>
-                                                <th class="p-2.5">PENUGASAN WALI KELAS (GURU)</th>
-                                                <th class="p-2.5 text-center">TOTAL SISWA</th>
-                                                <th class="p-2.5 text-center">AKSI</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100">
-                                            ${classes.map(cls => {
-                                                const totalStu = siswas.filter(s => s.class === cls.id).length;
-                                                return `
-                                                    <tr>
-                                                        <td class="p-2.5 font-bold text-slate-800">Kelas ${cls.id}</td>
-                                                        <td class="p-2.5">
-                                                            <select onchange="updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
-                                                                <option value="">-- Tanpa Wali Kelas --</option>
-                                                                ${teachers.map(t => `<option value="${t.username}" ${cls.teacherUsername === t.username ? 'selected' : ''}>${t.realName}</option>`).join('')}
-                                                            </select>
-                                                        </td>
-                                                        <td class="p-2.5 text-center font-bold text-slate-500">${totalStu} Siswa</td>
-                                                        <td class="p-2.5 text-center">
-                                                            <button onclick="deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
-                                                                <i class="fa-solid fa-trash-can"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                `;
-                                            }).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- BAGIAN C: MATRIKS OTORITAS -->
-                            <div class="pt-5 border-t border-slate-100">
-                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-shield-halved text-teal-600"></i> Matriks Otoritas Fungsional
-                                </h3>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-xs text-left">
-                                        <thead>
-                                            <tr class="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
-                                                <th class="pb-2">KLASIFIKASI PERAN</th>
-                                                <th class="pb-2 text-center">SETOR/TARIK</th>
-                                                <th class="pb-2 text-center">KELOLA SISWA</th>
-                                                <th class="pb-2 text-center">BUKU TABUNGAN</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100">
-                                            <tr>
-                                                <td class="py-2.5 font-bold text-slate-800">Admin Utama (Tata Usaha)</td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('admin', 'canSetorTarik')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('admin', 'canKelolaSiswa')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('admin', 'canCetakMutasi')"></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2.5 font-bold text-slate-800">Guru Wali Kelas (Guru)</td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canSetorTarik')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canKelolaSiswa')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canCetakMutasi')"></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2.5 font-bold text-slate-800">Nasabah (Siswa / Wali Murid)</td>
-                                                <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
-                                                <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('student_active', 'canCetakMutasi')"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div>
+                            <h1 class="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5">
+                                <i class="fa-solid fa-sliders text-teal-600"></i> Menu Pengaturan & Otoritas Sistem
+                            </h1>
+                            <p class="text-xs text-slate-400 font-medium">Halaman kendali utama Kepala Madrasah untuk mengatur identitas madrasah, batasan transaksi, hak akses peran, tingkat kelas, dan database</p>
                         </div>
 
-                        <!-- PANEL KANAN (1 KOLOM): DAFTAR STAFF & DANGER ZONE -->
-                        <div class="space-y-6">
-                            <!-- KREDENSIAL STAFF -->
-                            <div class="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                        <i class="fa-solid fa-users-gear"></i> Kredensial Staff
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- PANEL KIRI (2 KOLOM): IDENTITAS & HAK AKSES -->
+                            <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 space-y-5 lg:col-span-2">
+                                
+                                <!-- BAGIAN A: DETAIL IDENTITAS -->
+                                <div>
+                                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                        <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
                                     </h3>
-                                    <button onclick="triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
-                                        + Tambah Staff
-                                    </button>
-                                </div>
-                                
-                                <div class="space-y-2 max-h-[220px] overflow-y-auto divide-y divide-slate-100">
-                                    ${userDatabase.map(user => `
-                                        <div class="flex items-center justify-between py-2 text-xs font-medium">
-                                            <div class="flex items-center gap-2.5">
-                                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
-                                                    ${user.letter}
-                                                </div>
-                                                <div>
-                                                    <h4 class="font-bold text-slate-800">${user.realName}</h4>
-                                                    <p class="text-[10px] text-slate-400">User: <strong class="text-slate-600 font-mono">${user.username}</strong> | Sandi: <strong class="text-slate-600 font-mono">${user.password}</strong></p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-1">
-                                                <button onclick="editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                                                <button onclick="deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
-                                            </div>
+                                    <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+                                        <div class="space-y-1">
+                                            <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
+                                            <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
-                                    `).join('')}
+                                        <div class="space-y-1">
+                                            <label class="text-slate-500 font-bold block">Tahun Akademik Aktif</label>
+                                            <input type="text" id="inst_year" required value="${instDetails.academicYear}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        </div>
+                                        <div class="col-span-2 space-y-1">
+                                            <label class="text-slate-500 font-bold block">Alamat Kantor Operasional</label>
+                                            <input type="text" id="inst_address" required value="${instDetails.address}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-slate-500 font-bold block">Nomor HP/Kantor</label>
+                                            <input type="text" id="inst_phone" required value="${instDetails.phone}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-slate-500 font-bold block">Batas Sisa Saldo Mengendap (IDR)</label>
+                                            <input type="number" id="inst_min_balance" required value="${instDetails.minBalance}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        </div>
+                                        <div class="col-span-2 space-y-1">
+                                            <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
+                                            <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        </div>
+                                        <div class="col-span-2 flex justify-end">
+                                            <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- BAGIAN B: MANAJEMEN TINGKAT KELAS & WALI KELAS -->
+                                <div class="pt-5 border-t border-slate-100">
+                                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between gap-2 mb-3">
+                                        <span class="flex items-center gap-2">
+                                            <i class="fa-solid fa-graduation-cap text-teal-600"></i> Tata Kelola Kelas & Wali Kelas
+                                        </span>
+                                        <button onclick="triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
+                                            + Tambah Kelas Baru
+                                        </button>
+                                    </h3>
+                                    <p class="text-[11px] text-slate-400 mb-3 font-semibold">Tentukan penugasan Wali Kelas secara dinamis untuk setiap tingkatan kelas.</p>
+                                    
+                                    <div class="overflow-x-auto max-h-[250px] border border-slate-100 rounded-xl">
+                                        <table class="w-full text-xs text-left">
+                                            <thead class="bg-slate-50">
+                                                <tr class="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                                                    <th class="p-2.5">NAMA KELAS</th>
+                                                    <th class="p-2.5">PENUGASAN WALI KELAS (GURU)</th>
+                                                    <th class="p-2.5 text-center">TOTAL SISWA</th>
+                                                    <th class="p-2.5 text-center">AKSI</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                ${classes.map(cls => {
+                                                    const totalStu = siswas.filter(s => s.class === cls.id).length;
+                                                    return `
+                                                        <tr>
+                                                            <td class="p-2.5 font-bold text-slate-800">Kelas ${cls.id}</td>
+                                                            <td class="p-2.5">
+                                                                <select onchange="updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
+                                                                    <option value="">-- Tanpa Wali Kelas --</option>
+                                                                    ${teachers.map(t => `<option value="${t.username}" ${cls.teacherUsername === t.username ? 'selected' : ''}>${t.realName}</option>`).join('')}
+                                                                </select>
+                                                            </td>
+                                                            <td class="p-2.5 text-center font-bold text-slate-500">${totalStu} Siswa</td>
+                                                            <td class="p-2.5 text-center">
+                                                                <button onclick="deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
+                                                                    <i class="fa-solid fa-trash-can"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    `;
+                                                }).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- BAGIAN C: MATRIKS OTORITAS -->
+                                <div class="pt-5 border-t border-slate-100">
+                                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-2">
+                                        <i class="fa-solid fa-shield-halved text-teal-600"></i> Matriks Otoritas Fungsional
+                                    </h3>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-xs text-left">
+                                            <thead>
+                                                <tr class="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                                                    <th class="pb-2">KLASIFIKASI PERAN</th>
+                                                    <th class="pb-2 text-center">SETOR/TARIK</th>
+                                                    <th class="pb-2 text-center">KELOLA SISWA</th>
+                                                    <th class="pb-2 text-center">BUKU TABUNGAN</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                <tr>
+                                                    <td class="py-2.5 font-bold text-slate-800">Admin Utama (Tata Usaha)</td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('admin', 'canSetorTarik')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('admin', 'canKelolaSiswa')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('admin', 'canCetakMutasi')"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2.5 font-bold text-slate-800">Guru Wali Kelas (Guru)</td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canSetorTarik')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canKelolaSiswa')"></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canCetakMutasi')"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2.5 font-bold text-slate-800">Nasabah (Siswa / Wali Murid)</td>
+                                                    <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
+                                                    <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
+                                                    <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('student_active', 'canCetakMutasi')"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- DANGER ZONE: DATABASE RESET -->
-                            <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl space-y-4 shadow-sm">
-                                <h3 class="text-xs font-bold text-rose-800 uppercase tracking-wider flex items-center gap-2">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> Zona Bahaya: Reset Database
-                                </h3>
-                                <p class="text-[11px] text-rose-700 leading-relaxed">Manager berhak mengosongkan seluruh riwayat tabungan siswa untuk keperluan awal tahun ajaran baru atau pengujian sistem simulasi.</p>
-                                
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button onclick="executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-arrows-rotate"></i> Reset ke Demo
-                                    </button>
-                                    <button onclick="executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
-                                        <i class="fa-solid fa-trash-can"></i> Kosongkan Total
-                                    </button>
+                            <!-- PANEL KANAN (1 KOLOM): DAFTAR STAFF & DANGER ZONE -->
+                            <div class="space-y-6">
+                                <!-- KREDENSIAL STAFF -->
+                                <div class="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-users-gear"></i> Kredensial Staff
+                                        </h3>
+                                        <button onclick="triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
+                                            + Tambah Staff
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="space-y-2 max-h-[220px] overflow-y-auto divide-y divide-slate-100">
+                                        ${userDatabase.map(user => `
+                                            <div class="flex items-center justify-between py-2 text-xs font-medium">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+                                                        ${user.letter}
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-bold text-slate-800">${user.realName}</h4>
+                                                        <p class="text-[10px] text-slate-400">User: <strong class="text-slate-600 font-mono">${user.username}</strong> | Sandi: <strong class="text-slate-600 font-mono">${user.password}</strong></p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-1">
+                                                    <button onclick="editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                                                    <button onclick="deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- DANGER ZONE: DATABASE RESET -->
+                                <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl space-y-4 shadow-sm">
+                                    <h3 class="text-xs font-bold text-rose-800 uppercase tracking-wider flex items-center gap-2">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Zona Bahaya: Reset Database
+                                    </h3>
+                                    <p class="text-[11px] text-rose-700 leading-relaxed">Manager berhak mengosongkan seluruh riwayat tabungan siswa untuk keperluan awal tahun ajaran baru atau pengujian sistem simulasi.</p>
+                                    
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button onclick="executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-arrows-rotate"></i> Reset ke Demo
+                                        </button>
+                                        <button onclick="executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
+                                            <i class="fa-solid fa-trash-can"></i> Kosongkan Total
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } catch (err) {
+                // Tampilan proteksi error jika cache lama rusak
+                container.innerHTML = `
+                    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-6 rounded-3xl space-y-4 max-w-lg mx-auto shadow-sm text-center">
+                        <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h3 class="font-extrabold text-sm">Gagal Memuat Konfigurasi (Bentrokan Cache)</h3>
+                            <p class="text-xs text-rose-700 leading-relaxed">Ditemukan struktur data lama dari sesi pengujian Anda sebelumnya di browser ini yang tidak kompatibel dengan sistem dinamis yang baru.</p>
+                        </div>
+                        <div class="p-3 bg-white border border-rose-200/60 rounded-xl text-left text-[11px] font-mono text-slate-500 overflow-x-auto">
+                            Error: ${err.message}
+                        </div>
+                        <button onclick="localStorage.clear(); location.reload();" class="w-full bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-sm">
+                            <i class="fa-solid fa-broom"></i> Bersihkan Cache & Muat Ulang Aplikasi
+                        </button>
+                    </div>
+                `;
+                console.error("SITAS Error:", err);
+            }
         }
 
         // --- MANAJEMEN KELAS & WALI KELAS INLINE ---
