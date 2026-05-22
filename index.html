@@ -500,7 +500,7 @@
                     <label class="text-slate-500 font-bold block">Klasifikasi Peran (Role)</label>
                     <select id="staff_role" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500">
                         <option value="admin">Admin Utama (Tata Usaha)</option>
-                        <option value="teacher_3a">Guru Wali Kelas (Guru)</option>
+                        <option value="teacher">Guru Wali Kelas (Guru)</option>
                         <option value="manager">Kepala Madrasah (Manager)</option>
                     </select>
                 </div>
@@ -541,16 +541,29 @@
             { id: "TX-20260518-009", date: "2026-05-18 09:30", studentId: "1005", studentName: "Elina Safitri", class: "1-B", type: "debit", amount: 150000, balanceSnap: 150000, admin: "Aminah TU", desc: "Setoran Pertama" }
         ];
 
+        const DEFAULT_CLASSES = [
+            { id: "1-A", teacherUsername: "" },
+            { id: "1-B", teacherUsername: "" },
+            { id: "2-A", teacherUsername: "" },
+            { id: "2-B", teacherUsername: "" },
+            { id: "3-A", teacherUsername: "syarifuddin" },
+            { id: "3-B", teacherUsername: "" },
+            { id: "4-A", teacherUsername: "" },
+            { id: "4-B", teacherUsername: "" },
+            { id: "5", teacherUsername: "" },
+            { id: "6", teacherUsername: "" }
+        ];
+
         const DEFAULT_USER_DATABASE = [
             { username: "manager", password: "manager123", role: "manager", realName: "Dr. H. Ahmad Fauzan, M.Ag.", roleLabel: "Kepala Madrasah (Manager)", letter: "K" },
             { username: "admin", password: "admin123", role: "admin", realName: "Hj. Aminah, S.Pd.", roleLabel: "Admin Utama", letter: "A" },
-            { username: "syarifuddin", password: "guru123", role: "teacher_3a", realName: "Ust. Syarifuddin", roleLabel: "Guru Wali Kelas 3-A", letter: "U" }
+            { username: "syarifuddin", password: "guru123", role: "teacher", realName: "Ust. Syarifuddin", roleLabel: "Guru Wali Kelas", letter: "U" }
         ];
 
         const DEFAULT_ROLE_AUTHORITIES = {
             manager: { canSetorTarik: true, canKelolaSiswa: true, canCetakMutasi: true, canConfig: true, canResetDatabase: true, canManageStaff: true },
             admin: { canSetorTarik: true, canKelolaSiswa: true, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false },
-            teacher_3a: { canSetorTarik: false, canKelolaSiswa: true, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false },
+            teacher: { canSetorTarik: false, canKelolaSiswa: true, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false },
             student_active: { canSetorTarik: false, canKelolaSiswa: false, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false }
         };
 
@@ -567,26 +580,33 @@
         // Memuat / Menginisialisasi Database dari LocalStorage
         let siswas = JSON.parse(localStorage.getItem('sitas_siswas')) || DEFAULT_SISWAS;
         let transactions = JSON.parse(localStorage.getItem('sitas_transactions')) || DEFAULT_TRANSACTIONS;
+        let classes = JSON.parse(localStorage.getItem('sitas_classes')) || DEFAULT_CLASSES;
         let userDatabase = JSON.parse(localStorage.getItem('sitas_users')) || DEFAULT_USER_DATABASE;
         let roleAuthorities = JSON.parse(localStorage.getItem('sitas_authorities')) || DEFAULT_ROLE_AUTHORITIES;
         let instDetails = JSON.parse(localStorage.getItem('sitas_inst')) || DEFAULT_INST_DETAILS;
 
-        const listKelas = ["1-A", "1-B", "2-A", "2-B", "3-A", "3-B", "4-A", "4-B", "5", "6"];
         let currentUser = null;
         let activeTab = "dashboard";
-
-        // Filter Lokal
-        let filterSiswaClass = "";
-        let filterSiswaSearch = "";
 
         // Fungsi Simpan ke LocalStorage
         function saveToLocalStorage() {
             localStorage.setItem('sitas_siswas', JSON.stringify(siswas));
             localStorage.setItem('sitas_transactions', JSON.stringify(transactions));
+            localStorage.setItem('sitas_classes', JSON.stringify(classes));
             localStorage.setItem('sitas_users', JSON.stringify(userDatabase));
             localStorage.setItem('sitas_authorities', JSON.stringify(roleAuthorities));
             localStorage.setItem('sitas_inst', JSON.stringify(instDetails));
             updateSyncBadge();
+        }
+
+        // Helper: Mengambil kelas yang diasuh oleh Guru tertentu
+        function getTeacherClasses(username) {
+            return classes.filter(c => c.teacherUsername === username).map(c => c.id);
+        }
+
+        // Helper: Mengambil data Guru (untuk list dropdown)
+        function getTeacherList() {
+            return userDatabase.filter(u => u.role === "teacher");
         }
 
         // --- SISTEM TOAST PESAN ---
@@ -804,7 +824,6 @@
             if (modal) modal.classList.remove('hidden');
         }
 
-        // Modifikasi penutupan modal agar andal
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.add('hidden');
@@ -822,10 +841,10 @@
             let filteredSiswa = siswas;
             let filteredTx = transactions;
 
-            if (currentUser.role.startsWith("teacher_")) {
-                const targetClass = currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B");
-                filteredSiswa = siswas.filter(s => s.class === targetClass);
-                filteredTx = transactions.filter(t => t.class === targetClass);
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                filteredSiswa = siswas.filter(s => allowedClasses.includes(s.class));
+                filteredTx = transactions.filter(t => allowedClasses.includes(t.class));
             } else if (currentUser.role === "student_active") {
                 filteredSiswa = siswas.filter(s => s.id === currentUser.username);
                 filteredTx = transactions.filter(t => t.studentId === currentUser.username);
@@ -845,9 +864,9 @@
             let list = [...transactions];
             list.sort((a, b) => b.date.localeCompare(a.date));
 
-            if (currentUser.role.startsWith("teacher_")) {
-                const targetClass = currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B");
-                return list.filter(t => t.class === targetClass);
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                return list.filter(t => allowedClasses.includes(t.class));
             } else if (currentUser.role === "student_active") {
                 return list.filter(t => t.studentId === currentUser.username);
             }
@@ -860,8 +879,9 @@
         function renderDashboardView(container) {
             const stats = getDashboardStats();
             let classBadgeInfo = "";
-            if (currentUser.role.startsWith("teacher_")) {
-                classBadgeInfo = `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">Monitor Kelas ${currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B")}</span>`;
+            if (currentUser.role === "teacher") {
+                const assigned = getTeacherClasses(currentUser.username).join(', ');
+                classBadgeInfo = `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">Monitor Kelas: ${assigned || 'Belum Ditugaskan'}</span>`;
             }
 
             container.innerHTML = `
@@ -989,6 +1009,27 @@
 
         // VIEW: SETOR / TARIK TUNAI
         function renderSetorTarikView(container) {
+            let classOptionsHTML = "";
+            let teacherFilterHTML = "";
+
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                classOptionsHTML = allowedClasses.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('');
+            } else {
+                classOptionsHTML = `<option value="">Semua Kelas</option>` + classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
+                
+                // Tambahkan filter Wali Kelas untuk Admin/Manager
+                const teachers = getTeacherList();
+                teacherFilterHTML = `
+                    <div class="w-full md:w-56">
+                        <select id="setor_teacher_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <option value="">Semua Wali Kelas</option>
+                            ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1012,10 +1053,10 @@
                         </div>
                         <div class="w-full md:w-48">
                             <select id="setor_class_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
-                                <option value="">Semua Kelas</option>
-                                ${listKelas.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('')}
+                                ${classOptionsHTML}
                             </select>
                         </div>
+                        ${teacherFilterHTML}
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="setorSiswaGrid">
@@ -1036,12 +1077,17 @@
 
             const searchIn = document.getElementById('setor_search_input').value.trim().toLowerCase();
             const classIn = document.getElementById('setor_class_select').value;
+            const teacherIn = document.getElementById('setor_teacher_select')?.value;
 
             let list = [...siswas];
 
-            if (currentUser.role.startsWith("teacher_")) {
-                const targetClass = currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B");
-                list = list.filter(s => s.class === targetClass);
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                list = list.filter(s => allowedClasses.includes(s.class));
+            } else if (teacherIn) {
+                // Filter by Wali Kelas (mencari kelas apa saja yang dimiliki oleh guru ini)
+                const teacherClasses = getTeacherClasses(teacherIn);
+                list = list.filter(s => teacherClasses.includes(s.class));
             }
 
             if (classIn) {
@@ -1057,38 +1103,66 @@
                 return;
             }
 
-            grid.innerHTML = list.map(s => `
-                <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 hover:border-teal-500/20 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-                    <div class="space-y-2">
-                        <div class="flex items-start justify-between">
-                            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">No. Rek: ${s.id}</span>
-                            <span class="bg-teal-50 text-teal-800 text-[9px] font-bold px-2 py-0.5 rounded-full">Kelas ${s.class}</span>
-                        </div>
-                        <div>
-                            <h3 class="font-extrabold text-slate-800 text-sm leading-snug">${s.name}</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Wali: <strong>${s.parentName}</strong></p>
-                        </div>
-                    </div>
+            grid.innerHTML = list.map(s => {
+                // Temukan Wali Kelas untuk kelas ini
+                const clsObj = classes.find(c => c.id === s.class);
+                const teacherObj = clsObj ? userDatabase.find(u => u.username === clsObj.teacherUsername) : null;
+                const teacherName = teacherObj ? teacherObj.realName : "Belum Ditugaskan";
 
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Berjalan</span>
-                        <strong class="text-slate-800 text-xs font-black">${formatRupiah(s.balance)}</strong>
-                    </div>
+                return `
+                    <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 hover:border-teal-500/20 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between">
+                                <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">No. Rek: ${s.id}</span>
+                                <span class="bg-teal-50 text-teal-800 text-[9px] font-bold px-2 py-0.5 rounded-full">Kelas ${s.class}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-slate-800 text-sm leading-snug">${s.name}</h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Wali Murid: <strong>${s.parentName}</strong></p>
+                                <p class="text-[9px] text-slate-400 font-semibold">Wali Kelas: <span class="text-teal-700">${teacherName}</span></p>
+                            </div>
+                        </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
-                            <i class="fa-solid fa-plus-circle"></i> Setor Tunai
-                        </button>
-                        <button onclick="triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
-                            <i class="fa-solid fa-minus-circle"></i> Tarik Tunai
-                        </button>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Berjalan</span>
+                            <strong class="text-slate-800 text-xs font-black">${formatRupiah(s.balance)}</strong>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
+                                <i class="fa-solid fa-plus-circle"></i> Setor Tunai
+                            </button>
+                            <button onclick="triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
+                                <i class="fa-solid fa-minus-circle"></i> Tarik Tunai
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // VIEW: KELOLA SISWA
         function renderKelolaSiswaView(container) {
+            let classOptionsHTML = "";
+            let teacherFilterHTML = "";
+
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                classOptionsHTML = allowedClasses.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('');
+            } else {
+                classOptionsHTML = `<option value="">Semua Kelas</option>` + classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
+                
+                const teachers = getTeacherList();
+                teacherFilterHTML = `
+                    <div class="w-full md:w-56">
+                        <select id="siswa_teacher_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <option value="">Semua Wali Kelas</option>
+                            ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1112,10 +1186,10 @@
                         </div>
                         <div class="w-full md:w-48">
                             <select id="siswa_class_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
-                                <option value="">Semua Kelas</option>
-                                ${listKelas.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('')}
+                                ${classOptionsHTML}
                             </select>
                         </div>
+                        ${teacherFilterHTML}
                     </div>
 
                     <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 space-y-4">
@@ -1128,8 +1202,8 @@
                                         <th class="pb-2 text-center">Kelas</th>
                                         <th class="pb-2">Wali Murid / HP Orang Tua</th>
                                         <th class="pb-2 text-right">Saldo Tabungan</th>
-                                        <th class="pb-2 text-center">Status Rekening</th>
-                                        <th class="pb-2 text-center">Aksi Tindakan</th>
+                                        <th class="pb-2 text-center">Status</th>
+                                        <th class="pb-2 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="siswaTableBody" class="divide-y divide-slate-100">
@@ -1153,12 +1227,16 @@
 
             const searchIn = document.getElementById('siswa_search_input').value.trim().toLowerCase();
             const classIn = document.getElementById('siswa_class_select').value;
+            const teacherIn = document.getElementById('siswa_teacher_select')?.value;
 
             let list = [...siswas];
 
-            if (currentUser.role.startsWith("teacher_")) {
-                const targetClass = currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B");
-                list = list.filter(s => s.class === targetClass);
+            if (currentUser.role === "teacher") {
+                const allowedClasses = getTeacherClasses(currentUser.username);
+                list = list.filter(s => allowedClasses.includes(s.class));
+            } else if (teacherIn) {
+                const teacherClasses = getTeacherClasses(teacherIn);
+                list = list.filter(s => teacherClasses.includes(s.class));
             }
 
             if (classIn) {
@@ -1238,9 +1316,9 @@
                 descriptionText = "Anda masuk sebagai Siswa. Berikut adalah pintasan mutasi dan e-passbook tabungan pribadi Anda di madrasah.";
             } else {
                 let targetSiswaList = [...siswas];
-                if (currentUser.role.startsWith("teacher_")) {
-                    const targetClass = currentUser.role.split("_")[1].toUpperCase().replace("A", "-A").replace("B", "-B");
-                    targetSiswaList = siswas.filter(s => s.class === targetClass);
+                if (currentUser.role === "teacher") {
+                    const allowedClasses = getTeacherClasses(currentUser.username);
+                    targetSiswaList = siswas.filter(s => allowedClasses.includes(s.class));
                 }
 
                 selectStudentHTML = `
@@ -1456,7 +1534,7 @@
         // --- HANDLER DAFTAR SISWA BARU ---
         function triggerNewStudentModal() {
             const classSelect = document.getElementById('m_stu_class');
-            classSelect.innerHTML = listKelas.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('');
+            classSelect.innerHTML = classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
             
             document.getElementById('m_stu_name').value = '';
             document.getElementById('m_stu_parent').value = '';
@@ -1591,58 +1669,110 @@
 
         // VIEW: KONFIGURASI MANAGER
         function renderSystemSettingsView(container) {
+            const teachers = getTeacherList();
+
             container.innerHTML = `
                 <div class="space-y-6">
                     <div>
                         <h1 class="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5">
                             <i class="fa-solid fa-sliders text-teal-600"></i> Menu Pengaturan & Otoritas Sistem
                         </h1>
-                        <p class="text-xs text-slate-400 font-medium">Halaman kendali utama Kepala Madrasah untuk mengatur identitas madrasah, batasan transaksi, hak akses peran, dan database</p>
+                        <p class="text-xs text-slate-400 font-medium">Halaman kendali utama Kepala Madrasah untuk mengatur identitas madrasah, batasan transaksi, hak akses peran, tingkat kelas, dan database</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 space-y-4 lg:col-span-2">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
-                            </h3>
+                        <!-- PANEL KIRI (2 KOLOM): IDENTITAS & HAK AKSES -->
+                        <div class="bg-white border border-slate-100 rounded-2xl shadow-xs p-5 space-y-5 lg:col-span-2">
                             
-                            <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
-                                <div class="space-y-1">
-                                    <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
-                                    <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-slate-500 font-bold block">Tahun Akademik Aktif</label>
-                                    <input type="text" id="inst_year" required value="${instDetails.academicYear}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                </div>
-                                <div class="col-span-2 space-y-1">
-                                    <label class="text-slate-500 font-bold block">Alamat Kantor Operasional</label>
-                                    <input type="text" id="inst_address" required value="${instDetails.address}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-slate-500 font-bold block">Nomor HP/Kantor</label>
-                                    <input type="text" id="inst_phone" required value="${instDetails.phone}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-slate-500 font-bold block">Batas Sisa Saldo Mengendap (IDR)</label>
-                                    <input type="number" id="inst_min_balance" required value="${instDetails.minBalance}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                </div>
-                                <div class="col-span-2 space-y-1">
-                                    <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
-                                    <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
-                                    <p class="text-[9px] text-slate-400 font-semibold leading-normal mt-1">Gunakan alamat Web App URL setelah mempublikasikan Apps Script Anda di Google Sheets.</p>
-                                </div>
-                                <div class="col-span-2 pt-2 border-t border-slate-100 flex justify-end">
-                                    <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
-                                </div>
-                            </form>
+                            <!-- BAGIAN A: DETAIL IDENTITAS -->
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
+                                </h3>
+                                <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+                                    <div class="space-y-1">
+                                        <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
+                                        <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-slate-500 font-bold block">Tahun Akademik Aktif</label>
+                                        <input type="text" id="inst_year" required value="${instDetails.academicYear}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="col-span-2 space-y-1">
+                                        <label class="text-slate-500 font-bold block">Alamat Kantor Operasional</label>
+                                        <input type="text" id="inst_address" required value="${instDetails.address}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-slate-500 font-bold block">Nomor HP/Kantor</label>
+                                        <input type="text" id="inst_phone" required value="${instDetails.phone}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-slate-500 font-bold block">Batas Sisa Saldo Mengendap (IDR)</label>
+                                        <input type="number" id="inst_min_balance" required value="${instDetails.minBalance}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="col-span-2 space-y-1">
+                                        <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
+                                        <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                    </div>
+                                    <div class="col-span-2 flex justify-end">
+                                        <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
+                                    </div>
+                                </form>
+                            </div>
 
-                            <div class="pt-5 border-t border-slate-100 space-y-4">
-                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <!-- BAGIAN B: MANAJEMEN TINGKAT KELAS & WALI KELAS -->
+                            <div class="pt-5 border-t border-slate-100">
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between gap-2 mb-3">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fa-solid fa-graduation-cap text-teal-600"></i> Tata Kelola Kelas & Wali Kelas
+                                    </span>
+                                    <button onclick="triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
+                                        + Tambah Kelas Baru
+                                    </button>
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mb-3 font-semibold">Tentukan penugasan Wali Kelas secara dinamis untuk setiap tingkatan kelas.</p>
+                                
+                                <div class="overflow-x-auto max-h-[250px] border border-slate-100 rounded-xl">
+                                    <table class="w-full text-xs text-left">
+                                        <thead class="bg-slate-50">
+                                            <tr class="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                                                <th class="p-2.5">NAMA KELAS</th>
+                                                <th class="p-2.5">PENUGASAN WALI KELAS (GURU)</th>
+                                                <th class="p-2.5 text-center">TOTAL SISWA</th>
+                                                <th class="p-2.5 text-center">AKSI</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            ${classes.map(cls => {
+                                                const totalStu = siswas.filter(s => s.class === cls.id).length;
+                                                return `
+                                                    <tr>
+                                                        <td class="p-2.5 font-bold text-slate-800">Kelas ${cls.id}</td>
+                                                        <td class="p-2.5">
+                                                            <select onchange="updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
+                                                                <option value="">-- Tanpa Wali Kelas --</option>
+                                                                ${teachers.map(t => `<option value="${t.username}" ${cls.teacherUsername === t.username ? 'selected' : ''}>${t.realName}</option>`).join('')}
+                                                            </select>
+                                                        </td>
+                                                        <td class="p-2.5 text-center font-bold text-slate-500">${totalStu} Siswa</td>
+                                                        <td class="p-2.5 text-center">
+                                                            <button onclick="deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- BAGIAN C: MATRIKS OTORITAS -->
+                            <div class="pt-5 border-t border-slate-100">
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-2">
                                     <i class="fa-solid fa-shield-halved text-teal-600"></i> Matriks Otoritas Fungsional
                                 </h3>
-                                <p class="text-[11px] text-slate-500 font-medium">Beri centang pada fitur yang diizinkan untuk diakses oleh masing-masing klasifikasi peran staf.</p>
-                                
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-xs text-left">
                                         <thead>
@@ -1662,9 +1792,9 @@
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 font-bold text-slate-800">Guru Wali Kelas (Guru)</td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher_3a.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher_3a', 'canSetorTarik')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher_3a.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher_3a', 'canKelolaSiswa')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher_3a.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher_3a', 'canCetakMutasi')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canSetorTarik')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canKelolaSiswa')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canCetakMutasi')"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 font-bold text-slate-800">Nasabah (Siswa / Wali Murid)</td>
@@ -1678,8 +1808,9 @@
                             </div>
                         </div>
 
+                        <!-- PANEL KANAN (1 KOLOM): DAFTAR STAFF & DANGER ZONE -->
                         <div class="space-y-6">
-                            <!-- DIRECTORY STAFF REGISTERED -->
+                            <!-- KREDENSIAL STAFF -->
                             <div class="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm space-y-3">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -1733,6 +1864,56 @@
             `;
         }
 
+        // --- MANAJEMEN KELAS & WALI KELAS INLINE ---
+        function triggerAddClassInline() {
+            const classId = prompt("Masukkan ID/Nama Tingkat Kelas Baru (Contoh: 1-C, 5-A, atau 6):");
+            if (!classId) return;
+
+            const trimmedId = classId.trim().toUpperCase();
+            if (classes.some(c => c.id === trimmedId)) {
+                showToast("ID Kelas tersebut sudah terdaftar!", true);
+                return;
+            }
+
+            classes.push({
+                id: trimmedId,
+                teacherUsername: ""
+            });
+
+            saveToLocalStorage();
+            showToast(`Berhasil menambahkan Kelas ${trimmedId}!`);
+            renderSystemSettingsView(document.getElementById('dynamicContent'));
+        }
+
+        function deleteClassInline(classId) {
+            // Pengaman: Periksa apakah masih ada siswa di kelas tersebut
+            const hasSiswa = siswas.some(s => s.class === classId);
+            if (hasSiswa) {
+                showToast(`Gagal menghapus! Masih terdapat siswa terdaftar aktif di Kelas ${classId}. Pindahkan siswa terlebih dahulu.`, true);
+                return;
+            }
+
+            showConfirm(
+                "Hapus Kelas",
+                `Apakah Anda yakin ingin menghapus Kelas ${classId}?`,
+                () => {
+                    classes = classes.filter(c => c.id !== classId);
+                    saveToLocalStorage();
+                    showToast(`Kelas ${classId} berhasil dihapus!`);
+                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                }
+            );
+        }
+
+        function updateClassTeacher(classId, teacherUsername) {
+            const cls = classes.find(c => c.id === classId);
+            if (cls) {
+                cls.teacherUsername = teacherUsername;
+                saveToLocalStorage();
+                showToast(`Wali Kelas ${classId} berhasil diperbarui!`);
+            }
+        }
+
         function saveInstDetails(event) {
             event.preventDefault();
             instDetails.name = document.getElementById('inst_name').value.trim();
@@ -1764,7 +1945,7 @@
             document.getElementById('staff_name').value = "";
             document.getElementById('staff_username').value = "";
             document.getElementById('staff_password').value = "";
-            document.getElementById('staff_role').value = "admin";
+            document.getElementById('staff_role').value = "teacher";
             openModal('modalStaffEdit');
         }
 
@@ -1792,7 +1973,7 @@
             const roleLabelMap = {
                 manager: "Kepala Madrasah (Manager)",
                 admin: "Admin Utama",
-                teacher_3a: "Guru Wali Kelas 3-A"
+                teacher: "Guru Wali Kelas"
             };
 
             if (editId) {
@@ -1838,6 +2019,10 @@
                 `Apakah Anda yakin ingin menghapus kredensial akses untuk user "${username}"?`,
                 () => {
                     userDatabase = userDatabase.filter(x => x.username !== username);
+                    // Bersihkan penugasan wali kelas jika guru dihapus
+                    classes.forEach(c => {
+                        if (c.teacherUsername === username) c.teacherUsername = "";
+                    });
                     saveToLocalStorage();
                     showToast("Kredensial staff berhasil dihapus!");
                     renderSystemSettingsView(document.getElementById('dynamicContent'));
@@ -1857,11 +2042,12 @@
                     if (mode === 'demo') {
                         siswas = JSON.parse(JSON.stringify(DEFAULT_SISWAS));
                         transactions = JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS));
+                        classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
                         showToast("Database berhasil di-reset ke Data Simulasi Demo!");
                     } else {
                         siswas = [];
                         transactions = [];
-                        showToast("Database dikosongkan secara total!");
+                        classes = [];
                     }
                     saveToLocalStorage();
                     renderSystemSettingsView(document.getElementById('dynamicContent'));
@@ -1897,7 +2083,8 @@
             const payload = {
                 action: "syncDatabase",
                 siswas: siswas,
-                transactions: transactions
+                transactions: transactions,
+                classes: classes
             };
 
             fetch(instDetails.gasURL, {
@@ -1928,6 +2115,9 @@
                 if (data.siswas && data.transactions) {
                     siswas = data.siswas;
                     transactions = data.transactions;
+                    if (data.classes) {
+                        classes = data.classes;
+                    }
                     saveToLocalStorage();
                     showToast("PULL Berhasil! Database lokal diperbarui sesuai Google Sheets.");
                     closeModal('modalSyncHub');
@@ -2045,6 +2235,7 @@ function doPost(e) {
 function handleSyncDatabase(payload) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   
+  // 1. Sinkronisasi Sheet "Siswa"
   var siswaSheet = ss.getSheetByName("Siswa") || ss.insertSheet("Siswa");
   siswaSheet.clear();
   var headersSiswa = ["ID", "Nama", "Kelas", "Wali", "Phone", "Saldo", "Status"];
@@ -2055,6 +2246,7 @@ function handleSyncDatabase(payload) {
     siswaSheet.appendRow([s.id, s.name, s.class, s.parentName, s.phone, s.balance, s.status]);
   });
 
+  // 2. Sinkronisasi Sheet "Transaksi"
   var txSheet = ss.getSheetByName("Transaksi") || ss.insertSheet("Transaksi");
   txSheet.clear();
   var headersTx = ["ID_Transaksi", "Tanggal", "ID_Siswa", "Nama_Siswa", "Kelas", "Jenis", "Jumlah", "Saldo_Snap", "Teller", "Keterangan"];
@@ -2065,6 +2257,17 @@ function handleSyncDatabase(payload) {
     txSheet.appendRow([t.id, t.date, t.studentId, t.studentName, t.class, t.type, t.amount, t.balanceSnap, t.admin, t.desc]);
   });
 
+  // 3. Sinkronisasi Sheet "Kelas"
+  var kelasSheet = ss.getSheetByName("Kelas") || ss.insertSheet("Kelas");
+  kelasSheet.clear();
+  var headersKelas = ["ID_Kelas", "Wali_Kelas_Username"];
+  kelasSheet.appendRow(headersKelas);
+  kelasSheet.getRange(1, 1, 1, headersKelas.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("#ffffff");
+
+  payload.classes.forEach(function(c) {
+    kelasSheet.appendRow([c.id, c.teacherUsername]);
+  });
+
   return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Google Sheets berhasil diperbarui!" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -2073,8 +2276,9 @@ function handleGetData() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var siswaSheet = ss.getSheetByName("Siswa");
   var txSheet = ss.getSheetByName("Transaksi");
+  var kelasSheet = ss.getSheetByName("Kelas");
   
-  var result = { siswas: [], transactions: [] };
+  var result = { siswas: [], transactions: [], classes: [] };
   
   if (siswaSheet) {
     var sData = siswaSheet.getDataRange().getValues();
@@ -2108,6 +2312,16 @@ function handleGetData() {
       });
     }
   }
+
+  if (kelasSheet) {
+    var kData = kelasSheet.getDataRange().getValues();
+    for(var k = 1; k < kData.length; k++) {
+      result.classes.push({
+        id: kData[k][0].toString(),
+        teacherUsername: kData[k][1].toString()
+      });
+    }
+  }
   
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
@@ -2127,6 +2341,12 @@ function initDatabase() {
   var headersTx = ["ID_Transaksi", "Tanggal", "ID_Siswa", "Nama_Siswa", "Kelas", "Jenis", "Jumlah", "Saldo_Snap", "Teller", "Keterangan"];
   txSheet.appendRow(headersTx);
   txSheet.getRange(1, 1, 1, headersTx.length).setFontWeight("bold").setBackground("#0d9488").setFontColor("#ffffff");
+
+  var kelasSheet = ss.getSheetByName("Kelas") || ss.insertSheet("Kelas");
+  kelasSheet.clear();
+  var headersKelas = ["ID_Kelas", "Wali_Kelas_Username"];
+  kelasSheet.appendRow(headersKelas);
+  kelasSheet.getRange(1, 1, 1, headersKelas.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("#ffffff");
   
   return "Database Berhasil Diinisialisasi!";
 }</pre>
