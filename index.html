@@ -48,25 +48,16 @@
             relManifest.setAttribute('rel', 'manifest');
             relManifest.setAttribute('href', manifestURL);
             document.head.appendChild(relManifest);
-        } catch (e) {
-            // Gagal memproses manifest di lingkungan sandbox diabaikan secara aman
-        }
+        } catch (e) {}
 
-        // Registrasi Service Worker yang Aman & Terproteksi dari Terowongan Sandbox Iframe
+        // Registrasi Service Worker yang Aman & Terproteksi dari Sandbox Iframe
         (function() {
             try {
                 const href = window.location.href || "";
                 const proto = window.location.protocol || "";
-                
-                // PROTEKSI MUTLAK: Jangan daftarkan Service Worker jika berada di Editor Sandbox, Iframe, atau file lokal.
-                // Ini mencegah pemicuan console.error yang memicu notifikasi crash palsu di editor Anda.
-                if (href.indexOf('usercontent') !== -1 || 
-                    href.indexOf('google') !== -1 || 
-                    proto.indexOf('blob') !== -1 || 
-                    window.self !== window.top) {
-                    return; // Lewati pendaftaran secara senyap demi stabilitas preview editor
+                if (href.indexOf('usercontent') !== -1 || href.indexOf('google') !== -1 || proto.indexOf('blob') !== -1 || window.self !== window.top) {
+                    return; 
                 }
-                
                 if ('serviceWorker' in navigator && proto === 'https:') {
                     const swCode = `
                         self.addEventListener('install', (e) => { self.skipWaiting(); });
@@ -74,13 +65,9 @@
                     `;
                     const swBlob = new Blob([swCode], {type: 'application/javascript'});
                     const swURL = URL.createObjectURL(swBlob);
-                    navigator.serviceWorker.register(swURL).catch(function() {
-                        // Gagal mendaftar diabaikan secara senyap tanpa menghasilkan log error di konsol
-                    });
+                    navigator.serviceWorker.register(swURL).catch(function() {});
                 }
-            } catch (err) {
-                // Senyap penuh demi stabilitas editor
-            }
+            } catch (err) {}
         })();
     </script>
 
@@ -123,7 +110,7 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-extrabold text-slate-800" id="confirmTitle">Konfirmasi Tindakan</h3>
-                <p class="text-xs text-slate-505 font-medium leading-relaxed" id="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+                <p class="text-xs text-slate-550 font-medium leading-relaxed" id="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
             </div>
             <div class="flex items-center gap-2 pt-2">
                 <button id="btnConfirmCancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all">Batal</button>
@@ -164,13 +151,13 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-505 uppercase tracking-wider block">Kata Sandi</label>
+                    <label class="text-xs font-bold text-slate-550 uppercase tracking-wider block">Kata Sandi</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                             <i class="fa-solid fa-lock text-xs"></i>
                         </span>
                         <input type="password" id="password" required placeholder="Sandi Default Siswa: siswa123" 
-                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
+                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-505 outline-none transition-all">
                     </div>
                 </div>
 
@@ -266,7 +253,7 @@
             
             <form id="formNewStudent" onsubmit="window.submitNewStudent(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
                 <div class="col-span-2 space-y-1">
-                    <label class="text-slate-505 font-bold block">Nama Lengkap Siswa</label>
+                    <label class="text-slate-550 font-bold block">Nama Lengkap Siswa</label>
                     <input type="text" id="m_stu_name" required placeholder="Contoh: Muhammad Akhyar" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                 </div>
                 <div class="space-y-1">
@@ -515,7 +502,7 @@
                     <input type="text" id="staff_password" required placeholder="Contoh: akhyar123" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-slate-505 font-bold block">Klasifikasi Peran (Role)</label>
+                    <label class="text-slate-550 font-bold block">Klasifikasi Peran (Role)</label>
                     <select id="staff_role" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500">
                         <option value="admin">Admin Utama (Tata Usaha)</option>
                         <option value="teacher">Guru Wali Kelas (Guru)</option>
@@ -535,7 +522,6 @@
     <!-- JAVASCRIPT LOGIKA UTAMA SITAS -->
     <!-- ======================================================== -->
     <script>
-        
         // Data Default Seed Awal
         const DEFAULT_SISWAS = [
             { id: "1001", name: "Ahmad Fauzi", class: "3-A", parentName: "Bpk. Slamet", phone: "081234567801", balance: 1250000, status: "Aktif" },
@@ -624,6 +610,86 @@
 
         let currentUser = null;
         let activeTab = "dashboard";
+
+        // ========================================================
+        // DEFENSIVE MODAL UTILITIES (PREVENT REFERENCE ERROR)
+        // ========================================================
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // ========================================================
+        // FORMAT RUPIAH UTILITY
+        // ========================================================
+        function formatRupiah(value) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(value);
+        }
+
+        // ========================================================
+        // TOAST & CONFIRM MODAL UTILITIES
+        // ========================================================
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+            if (!toast || !toastIcon || !toastMessage) return;
+            
+            toastMessage.innerText = message;
+            if (isError) {
+                toastIcon.className = "w-6 h-6 flex items-center justify-center rounded-full bg-rose-500 text-white text-xs";
+                toastIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+            } else {
+                toastIcon.className = "w-6 h-6 flex items-center justify-center rounded-full bg-emerald-500 text-slate-900 text-xs";
+                toastIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+            }
+
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3500);
+        }
+
+        function showConfirm(title, message, onOk, onCancel = null) {
+            const modal = document.getElementById('modalConfirm');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            if (!modal || !confirmTitle || !confirmMessage) return;
+
+            confirmTitle.innerText = title;
+            confirmMessage.innerText = message;
+            
+            modal.classList.remove('hidden');
+
+            const btnOk = document.getElementById('btnConfirmOk');
+            const btnCancel = document.getElementById('btnConfirmCancel');
+
+            btnOk.onclick = () => {
+                modal.classList.add('hidden');
+                if (typeof onOk === 'function') onOk();
+            };
+
+            btnCancel.onclick = () => {
+                modal.classList.add('hidden');
+                if (typeof onCancel === 'function') onCancel();
+            };
+        }
 
         // Fungsi Simpan ke LocalStorage yang Diperkuat
         function saveToLocalStorage() {
@@ -1527,7 +1593,7 @@
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1">
                                     <i class="fa-solid fa-circle-question text-teal-600"></i> Petunjuk Mutasi
                                 </h4>
-                                <ul class="text-[11px] text-slate-505 leading-relaxed list-disc list-inside space-y-1">
+                                <ul class="text-[11px] text-slate-550 leading-relaxed list-disc list-inside space-y-1">
                                     <li><strong>Debit (D):</strong> Tabungan masuk.</li>
                                     <li><strong>Kredit (K):</strong> Penarikan tunai.</li>
                                     <li>Gunakan tombol cetak untuk mencetak e-buku tabungan.</li>
@@ -1828,6 +1894,7 @@
             openModal('modalPrintPassbook');
         }
 
+        // Diperbaiki: Silakan gunakan window.print() asli dalam lingkup window ter-binding
         function executePrint() {
             showToast("Membuka Layanan Cetak Fisik System Printer...");
             const printContent = document.getElementById('printArea').innerHTML;
@@ -1890,7 +1957,7 @@
                                             <input type="number" id="inst_min_balance" required value="${instDetails ? instDetails.minBalance : 50000}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="col-span-2 space-y-1">
-                                            <label class="text-slate-505 font-bold block">URL Google Apps Script Deployment</label>
+                                            <label class="text-slate-550 font-bold block">URL Google Apps Script Deployment</label>
                                             <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails ? instDetails.gasURL : ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                         </div>
                                         <div class="col-span-2 flex justify-end">
@@ -2064,6 +2131,7 @@
         }
 
         // --- MANAJEMEN KELAS & WALI KELAS INLINE ---
+        // Diperbaiki: dipindahkan ke global scope dan diamankan dari error
         function triggerAddClassInline() {
             const classId = prompt("Masukkan ID/Nama Tingkat Kelas Baru (Contoh: 1-C, 5-A, atau 6):");
             if (!classId) return;
@@ -2293,7 +2361,7 @@
 */
 
 function doGet(e) {
-  var action = e &amp;&amp; e.parameter ? e.parameter.action : null;
+  var action = e && e.parameter ? e.parameter.action : null;
   if (action === "getData") {
     return handleGetData();
   }
@@ -2535,6 +2603,8 @@ function initDatabase() {
         window.openModal = openModal;
         window.closeModal = closeModal;
         window.formatRupiah = formatRupiah;
+        window.showToast = showToast;
+        window.showConfirm = showConfirm;
         window.triggerNewStudentModal = triggerNewStudentModal;
         window.submitNewStudent = submitNewStudent;
         window.updateMinWithdrawWarning = updateMinWithdrawWarning;
