@@ -109,7 +109,7 @@
             </div>
             <div class="flex items-center gap-2 pt-2">
                 <button id="btnConfirmCancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all">Batal</button>
-                <button id="btnConfirmOk" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm">Ya, Lanjutkan</button>
+                <button id="btnConfirmOk" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm">Ya, Lanjutkan</button>
             </div>
         </div>
     </div>
@@ -133,7 +133,7 @@
             </div>
 
             <!-- Formulir Login -->
-            <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+            <form id="formLogin" onsubmit="window.handleLogin(event)" class="space-y-4">
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Username / No. Induk Rekening</label>
                     <div class="relative">
@@ -188,8 +188,8 @@
 
             <!-- Footer Sidebar / Log Out -->
             <div class="p-4 border-t border-slate-800 flex items-center justify-between">
-                <span class="text-[9px] text-slate-500 font-semibold font-mono">v3.0 - SITAS Cloud</span>
-                <button onclick="handleLogout()" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition-all flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/30">
+                <span class="text-[9px] text-slate-500 font-semibold font-mono">v3.1 - SITAS Auto-ID</span>
+                <button onclick="window.handleLogout()" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition-all flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/30">
                     <i class="fa-solid fa-power-off"></i> Keluar
                 </button>
             </div>
@@ -218,7 +218,7 @@
                         </p>
                     </div>
                     <!-- Tombol Awan Sinkronisasi (Muncul Jika Diizinkan) -->
-                    <button onclick="openSyncHub()" id="btnSyncCloud" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-extrabold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+                    <button onclick="window.openSyncHub()" id="btnSyncCloud" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-extrabold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
                         <i class="fa-solid fa-cloud-sun animate-bounce"></i> Cloud Hub
                     </button>
                 </div>
@@ -241,12 +241,12 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-teal-600"></i> Form Pendaftaran Rekening Siswa Baru
                 </h3>
-                <button onclick="closeModal('modalNewStudent')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalNewStudent')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
-            <form id="formNewStudent" onsubmit="submitNewStudent(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+            <form id="formNewStudent" onsubmit="window.submitNewStudent(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
                 <div class="col-span-2 space-y-1">
                     <label class="text-slate-500 font-bold block">Nama Lengkap Siswa</label>
                     <input type="text" id="m_stu_name" required placeholder="Contoh: Muhammad Akhyar" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
@@ -271,7 +271,7 @@
                 </div>
                 
                 <div class="col-span-2 pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalNewStudent')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalNewStudent')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Daftarkan & Buat Rekening</button>
                 </div>
             </form>
@@ -285,7 +285,7 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-money-bill-transfer text-teal-600"></i> Transaksi Tabungan Baru
                 </h3>
-                <button onclick="closeModal('modalNewTransaction')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalNewTransaction')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -302,21 +302,21 @@
                 </div>
             </div>
             
-            <form id="formNewTransaction" onsubmit="submitNewTransaction(event)" class="space-y-4 text-xs font-medium">
+            <form id="formNewTransaction" onsubmit="window.submitNewTransaction(event)" class="space-y-4 text-xs font-medium">
                 <input type="hidden" id="txModalStudentId">
                 
                 <div class="space-y-1">
                     <label class="text-slate-500 font-bold block">Jenis Mutasi Transaksi</label>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all">
-                            <input type="radio" name="tx_type" id="tx_type_debit" value="debit" required checked onchange="updateMinWithdrawWarning()">
+                            <input type="radio" name="tx_type" id="tx_type_debit" value="debit" required checked onchange="window.updateMinWithdrawWarning()">
                             <div class="leading-none">
                                 <span class="font-bold text-slate-800 block text-xs">Setor Tunai (D)</span>
                                 <span class="text-[9px] text-slate-400">Menambah saldo</span>
                             </div>
                         </label>
                         <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all">
-                            <input type="radio" name="tx_type" id="tx_type_kredit" value="kredit" required onchange="updateMinWithdrawWarning()">
+                            <input type="radio" name="tx_type" id="tx_type_kredit" value="kredit" required onchange="window.updateMinWithdrawWarning()">
                             <div class="leading-none">
                                 <span class="font-bold text-slate-800 block text-xs">Penarikan Tunai (K)</span>
                                 <span class="text-[9px] text-slate-400">Mengurangi saldo</span>
@@ -339,7 +339,7 @@
                 </div>
                 
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalNewTransaction')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalNewTransaction')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Simpan Transaksi</button>
                 </div>
             </form>
@@ -353,7 +353,7 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-print text-teal-600"></i> Preview & Cetak Buku Tabungan Siswa
                 </h3>
-                <button onclick="closeModal('modalPrintPassbook')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalPrintPassbook')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -424,8 +424,8 @@
                     *Gunakan tombol di samping untuk mencetak berkas secara fisik atau menyimpannya sebagai file PDF.
                 </span>
                 <div class="flex items-center gap-2">
-                    <button onclick="closeModal('modalPrintPassbook')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">Tutup</button>
-                    <button onclick="executePrint()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                    <button onclick="window.closeModal('modalPrintPassbook')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">Tutup</button>
+                    <button onclick="window.executePrint()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
                         <i class="fa-solid fa-print"></i> Cetak Sekarang
                     </button>
                 </div>
@@ -440,27 +440,27 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up text-teal-600"></i> Cloud Sync Hub (Google Sheets)
                 </h3>
-                <button onclick="closeModal('modalSyncHub')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalSyncHub')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <div class="space-y-3 text-xs">
                 <p class="text-slate-500 font-semibold leading-relaxed">
-                    Sistem mendukung singkronisasi database lokal dengan Google Sheets milik Anda di Google Drive secara aman. Silakan pilih jenis aksi sinkronisasi:
+                    Sistem mendukung sinkronisasi database lokal dengan Google Sheets milik Anda di Google Drive secara aman tanpa konfigurasi manual di client.
                 </p>
 
                 <div class="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
                     <p class="font-bold text-slate-700 uppercase text-[10px]">Alamat Backend Google Apps Script:</p>
-                    <p id="syncHubURL" class="text-[9px] text-slate-400 font-mono truncate">Belum Dikonfigurasi (Atur di Menu Manager)</p>
+                    <p id="syncHubURL" class="text-[9px] text-slate-400 font-mono truncate">Mendeteksi URL otomatis...</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="cloudPullData()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all">
+                    <button onclick="window.cloudPullData()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all">
                         <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
                         <span class="text-[10px]">PULL (Ambil Data)</span>
                     </button>
-                    <button onclick="cloudPushData()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all shadow-sm">
+                    <button onclick="window.cloudPushData()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold p-3 rounded-xl flex flex-col items-center gap-2 transition-all shadow-sm">
                         <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
                         <span class="text-[10px]">PUSH (Kirim Data)</span>
                     </button>
@@ -476,12 +476,12 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5" id="staffModalTitle">
                     <i class="fa-solid fa-user-shield text-teal-600"></i> Kelola Kredensial Staff
                 </h3>
-                <button onclick="closeModal('modalStaffEdit')" class="text-slate-400 hover:text-slate-600 text-sm">
+                <button onclick="window.closeModal('modalStaffEdit')" class="text-slate-400 hover:text-slate-600 text-sm">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <form id="formStaff" onsubmit="submitStaffForm(event)" class="space-y-3.5 text-xs font-medium">
+            <form id="formStaff" onsubmit="window.submitStaffForm(event)" class="space-y-3.5 text-xs font-medium">
                 <input type="hidden" id="staff_edit_id">
                 
                 <div class="space-y-1">
@@ -506,12 +506,267 @@
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalStaffEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
+                    <button type="button" onclick="window.closeModal('modalStaffEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition-all">Batal</button>
                     <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm">Simpan Akun Staff</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- SECURE EMBEDDED RAW GOOGLE APPS SCRIPT BLUEPRINT -->
+    <!-- Safe from HTML Parser hijacking because it's text/plain -->
+    <script type="text/plain" id="rawGasCode">
+/* =======================================================================
+   SITAS BACKEND SINKRONISASI - AUTO ID SPREADSHEET (Code.gs)
+=======================================================================
+   ID Google Spreadsheet Anda telah terintegrasi secara dinamis ke variabel
+   SPREADSHEET_ID di bawah ini. Anda hanya perlu menyalin kode ini secara
+   utuh ke Editor Google Apps Script Anda.
+=======================================================================
+*/
+
+// CONSTANT SPREADSHEET ID BINDING (SANGAT PRAKTIS)
+var SPREADSHEET_ID = "1bbOMX5XiAiToKw3wG3hLkLbPBxxEDL-Je2KgYZh82AE";
+
+// HELPER UNTUK MENDAPATKAN KONEKSI DATABASE SPREADSHEET SECARA AMAN
+function getDatabaseConnection() {
+  if (SPREADSHEET_ID && SPREADSHEET_ID !== "MASUKKAN_ID_SPREADSHEET_ANDA_DISINI") {
+    try {
+      return SpreadsheetApp.openById(SPREADSHEET_ID);
+    } catch(err) {
+      Logger.log("Gagal memuat berdasarkan ID. Mencoba file bawaan terikat... " + err.toString());
+    }
+  }
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function setupDatabase() {
+  try {
+    var ss = getDatabaseConnection();
+    if (!ss) {
+      Logger.log("Database Google Sheets tidak dapat dijangkau.");
+      return;
+    }
+    checkAndCreateSheets(ss);
+    Logger.log("Inisialisasi database terpusat berhasil!");
+  } catch (err) {
+    Logger.log("Gagal melakukan setup: " + err.toString());
+  }
+}
+
+// doGet SAJIAN DUAL: MERENDER APLIKASI WEB HTML ATAU OUTPUT REST API JSON
+function doGet(e) {
+  try {
+    var ss = getDatabaseConnection();
+    if (!ss) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Spreadsheet aktif tidak ditemukan. Pastikan ID Spreadsheet sudah benar."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Inisialisasi sheet/tab otomatis jika belum lengkap
+    checkAndCreateSheets(ss);
+
+    // BILA DIAKSES DENGAN PARAMETER KHUSUS API ATAU DARI PERANGKAT SISTEM, KIRIMKAN DATA JSON
+    if (e && e.parameter && (e.parameter.action === "getData" || e.parameter.api === "true" || e.parameter.type === "json")) {
+      var db = {
+        siswas: readSheetToObjects(ss.getSheetByName("Siswa")),
+        transactions: readSheetToObjects(ss.getSheetByName("Transaksi")),
+        classes: readSheetToObjects(ss.getSheetByName("Kelas")),
+        users: readSheetToObjects(ss.getSheetByName("User")),
+        authorities: {},
+        instDetails: {}
+      };
+      
+      // Membaca konfigurasi & otorisasi dari tab Pengaturan
+      var configSheet = ss.getSheetByName("Pengaturan");
+      if (configSheet) {
+        var configData = configSheet.getDataRange().getValues();
+        for (var i = 1; i < configData.length; i++) {
+          var key = configData[i][0];
+          var val = configData[i][1];
+          if (key === "authorities" || key === "instDetails") {
+            try {
+              db[key] = JSON.parse(val);
+            } catch(err) {
+              db[key] = {};
+            }
+          }
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify(db))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // DEFAULT ACTION: MERENDER SELURUH INTERFACE HTML SITAS SEBAGAI WEB HOSTING PORTAL DI GOOGLE MACROS
+    var htmlContent = HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('SITAS Online - Sistem Informasi Tabungan Siswa')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    return htmlContent;
+      
+  } catch (error) {
+    // Tampilan halaman status interaktif jika diakses langsung di browser
+    var htmlOutput = HtmlService.createHtmlOutput(
+      '<!DOCTYPE html>' +
+      '<html>' +
+      '<head>' +
+      '  <meta charset="UTF-8">' +
+      '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+      '  <title>SITAS Cloud Gateway</title>' +
+      '  <script src="https://cdn.tailwindcss.com"></script>' +
+      '  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">' +
+      '  <style>body { font-family: "Plus Jakarta Sans", sans-serif; }</style>' +
+      '</head>' +
+      '<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-6">' +
+      '  <div class="max-w-md w-full bg-slate-800 rounded-3xl p-8 border border-slate-700 text-center space-y-6 shadow-2xl">' +
+      '    <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto text-emerald-400 text-3xl">' +
+      '      ✓' +
+      '    </div>' +
+      '    <div class="space-y-2">' +
+      '      <h1 class="text-xl font-extrabold tracking-tight">SITAS Cloud Gateway</h1>' +
+      '      <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Koneksi Cloud Terhubung & Aktif</p>' +
+      '    </div>' +
+      '    <div class="p-4 bg-slate-850 rounded-2xl border border-slate-700 text-left text-xs text-slate-400 space-y-2 leading-relaxed">' +
+      '      <p>💡 <strong>Informasi Sistem:</strong></p>' +
+      '      <p>Ini adalah alamat API Gateway SITAS MI Assulaimaniyah. Anda berhasil terhubung ke Google Sheets.</p>' +
+      '      <p>ID Database yang terikat: <code class="text-emerald-300 block break-all mt-1">1bbOMX5XiAiToKw3wG3hLkLbPBxxEDL-Je2KgYZh82AE</code></p>' +
+      '    </div>' +
+      '    <div class="text-[10px] text-slate-500 font-semibold">' +
+      '      SITAS v3.1 • MI Assulaimaniyah Mojoagung' +
+      '    </div>' +
+      '  </div>' +
+      '</body>' +
+      '</html>'
+    );
+    htmlOutput.setTitle("SITAS Cloud Gateway");
+    return htmlOutput;
+  }
+}
+
+function doPost(e) {
+  try {
+    var rawData = JSON.parse(e.postData.contents);
+    var action = rawData.action;
+
+    var ss = getDatabaseConnection();
+    if (!ss) {
+      throw new Error("Spreadsheet database tidak ditemukan. Periksa ID Spreadsheet Anda.");
+    }
+
+    checkAndCreateSheets(ss);
+
+    if (action === "syncDatabase") {
+      // Tulis ulang data lokal secara terstruktur ke Google Sheets
+      writeObjectsToSheet(ss.getSheetByName("Siswa"), rawData.siswas, ["id", "name", "class", "parentName", "phone", "balance", "status"]);
+      writeObjectsToSheet(ss.getSheetByName("Transaksi"), rawData.transactions, ["id", "date", "studentId", "studentName", "class", "type", "amount", "balanceSnap", "admin", "desc"]);
+      writeObjectsToSheet(ss.getSheetByName("Kelas"), rawData.classes, ["id", "teacherUsername"]);
+      
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Google Sheets berhasil diperbarui!" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Aksi POST tidak dikenal" }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// FUNGSI UTAMA: Otomatis mendeteksi dan membuat struktur tab & header kolom
+function checkAndCreateSheets(ss) {
+  var requiredSheets = {
+    "Siswa": ["id", "name", "class", "parentName", "phone", "balance", "status"],
+    "Transaksi": ["id", "date", "studentId", "studentName", "class", "type", "amount", "balanceSnap", "admin", "desc"],
+    "Kelas": ["id", "teacherUsername"],
+    "Pengaturan": ["Kunci", "Nilai JSON / Flat"]
+  };
+  
+  for (var name in requiredSheets) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+      sheet.appendRow(requiredSheets[name]);
+      
+      // Styling Header agar terlihat profesional secara visual
+      sheet.getRange(1, 1, 1, requiredSheets[name].length)
+           .setFontWeight("bold")
+           .setBackground("#115e59")
+           .setFontColor("#ffffff")
+           .setHorizontalAlignment("center");
+      
+      sheet.setFrozenRows(1);
+    }
+  }
+  
+  // Hapus sheet bawaan Google Sheets "Sheet1" jika tidak digunakan / kosong
+  var defaultSheet = ss.getSheetByName("Sheet1");
+  if (defaultSheet && defaultSheet.getLastRow() === 0) {
+    try { ss.deleteSheet(defaultSheet); } catch(e) {}
+  }
+}
+
+// HELPER: Mengonversi data tabel Google Sheets menjadi array of object JSON
+function readSheetToObjects(sheet) {
+  if (!sheet) return [];
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var objects = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var obj = {};
+    var hasData = false;
+    
+    for (var j = 0; j < headers.length; j++) {
+      var val = row[j];
+      obj[headers[j]] = val;
+      if (val !== "") hasData = true;
+    }
+    
+    if (hasData) {
+      if (obj.balance !== undefined) obj.balance = Number(obj.balance) || 0;
+      if (obj.amount !== undefined) obj.amount = Number(obj.amount) || 0;
+      if (obj.balanceSnap !== undefined) obj.balanceSnap = Number(obj.balanceSnap) || 0;
+      
+      objects.push(obj);
+    }
+  }
+  return objects;
+}
+
+// HELPER: Menulis ulang kumpulan JSON Object ke dalam sel spreadsheet secara bersih
+function writeObjectsToSheet(sheet, objects, keys) {
+  if (!sheet) return;
+  sheet.clearContents();
+  sheet.appendRow(keys);
+  
+  // Format ulang Header pasca pembersihan
+  sheet.getRange(1, 1, 1, keys.length)
+       .setFontWeight("bold")
+       .setBackground("#115e59")
+       .setFontColor("#ffffff")
+       .setHorizontalAlignment("center");
+       
+  if (!objects || objects.length === 0) return;
+  
+  var rows = [];
+  for (var i = 0; i < objects.length; i++) {
+    var obj = objects[i];
+    var row = [];
+    for (var j = 0; j < keys.length; j++) {
+      row.push(obj[keys[j]] !== undefined ? obj[keys[j]] : "");
+    }
+    rows.push(row);
+  }
+  
+  sheet.getRange(2, 1, rows.length, keys.length).setValues(rows);
+}
+    </script>
 
     <!-- ======================================================== -->
     <!-- JAVASCRIPT LOGIKA UTAMA SITAS -->
@@ -562,7 +817,7 @@
 
         const DEFAULT_ROLE_AUTHORITIES = {
             manager: { canSetorTarik: true, canKelolaSiswa: true, canCetakMutasi: true, canConfig: true, canResetDatabase: true, canManageStaff: true },
-            admin: { canSetorTarik: true, canKelolaSiswa: true, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false },
+            admin: { canSetorTarik: true, canKelolaSiswa: true, canCetakMutasi: true, canConfig: true, canResetDatabase: false, canManageStaff: false },
             teacher: { canSetorTarik: false, canKelolaSiswa: true, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false },
             student_active: { canSetorTarik: false, canKelolaSiswa: false, canCetakMutasi: true, canConfig: false, canResetDatabase: false, canManageStaff: false }
         };
@@ -577,40 +832,59 @@
             gasURL: ""
         };
 
-        // Memuat / Menginisialisasi Database dari LocalStorage
-        let siswas = JSON.parse(localStorage.getItem('sitas_siswas')) || DEFAULT_SISWAS;
-        let transactions = JSON.parse(localStorage.getItem('sitas_transactions')) || DEFAULT_TRANSACTIONS;
-        let classes = JSON.parse(localStorage.getItem('sitas_classes')) || DEFAULT_CLASSES;
-        let userDatabase = JSON.parse(localStorage.getItem('sitas_users')) || DEFAULT_USER_DATABASE;
-        let roleAuthorities = JSON.parse(localStorage.getItem('sitas_authorities')) || DEFAULT_ROLE_AUTHORITIES;
-        let instDetails = JSON.parse(localStorage.getItem('sitas_inst')) || DEFAULT_INST_DETAILS;
+        // EXPLICIT GLOBAL BINDINGS TO PREVENT UNDEFINED ERROR TRAPS
+        window.state = {
+            db: {
+                siswas: JSON.parse(localStorage.getItem('sitas_siswas')) || DEFAULT_SISWAS,
+                transactions: JSON.parse(localStorage.getItem('sitas_transactions')) || DEFAULT_TRANSACTIONS,
+                classes: JSON.parse(localStorage.getItem('sitas_classes')) || DEFAULT_CLASSES,
+                users: JSON.parse(localStorage.getItem('sitas_users')) || DEFAULT_USER_DATABASE,
+                authorities: JSON.parse(localStorage.getItem('sitas_authorities')) || DEFAULT_ROLE_AUTHORITIES,
+                instDetails: JSON.parse(localStorage.getItem('sitas_inst')) || DEFAULT_INST_DETAILS
+            }
+        };
+
+        let siswas = window.state.db.siswas;
+        let transactions = window.state.db.transactions;
+        let classes = window.state.db.classes;
+        let userDatabase = window.state.db.users;
+        let roleAuthorities = window.state.db.authorities;
+        let instDetails = window.state.db.instDetails;
 
         let currentUser = null;
         let activeTab = "dashboard";
 
         // Fungsi Simpan ke LocalStorage
-        function saveToLocalStorage() {
+        window.saveToLocalStorage = function() {
             localStorage.setItem('sitas_siswas', JSON.stringify(siswas));
             localStorage.setItem('sitas_transactions', JSON.stringify(transactions));
             localStorage.setItem('sitas_classes', JSON.stringify(classes));
             localStorage.setItem('sitas_users', JSON.stringify(userDatabase));
             localStorage.setItem('sitas_authorities', JSON.stringify(roleAuthorities));
             localStorage.setItem('sitas_inst', JSON.stringify(instDetails));
-            updateSyncBadge();
-        }
+            window.updateSyncBadge();
+        };
+
+        // AUTOMATIC GAS DEPLOYMENT URL DETECTOR (ZERO-CONFIG)
+        window.getAutoGasUrl = function() {
+            if (window.location.hostname.includes('script.google.com')) {
+                return window.location.origin + window.location.pathname;
+            }
+            return instDetails.gasURL || "";
+        };
 
         // Helper: Mengambil kelas yang diasuh oleh Guru tertentu
-        function getTeacherClasses(username) {
+        window.getTeacherClasses = function(username) {
             return classes.filter(c => c.teacherUsername === username).map(c => c.id);
-        }
+        };
 
         // Helper: Mengambil data Guru (untuk list dropdown)
-        function getTeacherList() {
+        window.getTeacherList = function() {
             return userDatabase.filter(u => u.role === "teacher");
-        }
+        };
 
         // --- SISTEM TOAST PESAN ---
-        function showToast(message, isError = false) {
+        window.showToast = function(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastIcon = document.getElementById('toastIcon');
             const toastMessage = document.getElementById('toastMessage');
@@ -631,10 +905,10 @@
                 toast.classList.add('translate-y-[-100px]', 'opacity-0');
                 toast.classList.remove('translate-y-0', 'opacity-100');
             }, 3500);
-        }
+        };
 
         // --- CUSTOM CONFIRMATION MODAL ---
-        function showConfirm(title, message, onOk, onCancel = null) {
+        window.showConfirm = function(title, message, onOk, onCancel = null) {
             const modal = document.getElementById('modalConfirm');
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmMessage').innerText = message;
@@ -653,10 +927,10 @@
                 modal.classList.add('hidden');
                 if (onCancel) onCancel();
             };
-        }
+        };
 
         // --- HANDLER PORTAL LOGIN DENGAN AUTO-LOGIN SISWA ---
-        function handleLogin(event) {
+        window.handleLogin = function(event) {
             event.preventDefault();
             const userIn = document.getElementById('username').value.trim();
             const passIn = document.getElementById('password').value;
@@ -683,7 +957,7 @@
             
             if (matchedUser) {
                 currentUser = matchedUser;
-                showToast(`Selamat datang kembali, ${currentUser.realName}!`);
+                window.showToast(`Selamat datang kembali, ${currentUser.realName}!`);
                 
                 // Transisi Tampilan UI
                 document.getElementById('loginScreen').classList.add('hidden');
@@ -702,36 +976,36 @@
                 }
 
                 // Bangun Navigasi & Render Konten Awal
-                buildSidebarMenu();
-                navigate(activeTab);
+                window.buildSidebarMenu();
+                window.navigate(activeTab);
             } else {
-                showToast("Username atau kata sandi salah. Silakan coba kembali!", true);
+                window.showToast("Username atau kata sandi salah. Silakan coba kembali!", true);
             }
-        }
+        };
 
-        function handleLogout() {
+        window.handleLogout = function() {
             currentUser = null;
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('appScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
-            showToast("Sesi berhasil diakhiri. Berhasil keluar!");
-        }
+            window.showToast("Sesi berhasil diakhiri. Berhasil keluar!");
+        };
 
         // --- SISTEM OTORITAS NAVIGASI DINAMIS ---
-        function buildSidebarMenu() {
+        window.buildSidebarMenu = function() {
             const nav = document.getElementById('sidebarNav');
             const auth = roleAuthorities[currentUser.role] || { canSetorTarik: false, canKelolaSiswa: false, canCetakMutasi: true, canConfig: false };
             
             let html = `
-                <button onclick="navigate('dashboard')" id="btn-nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                <button onclick="window.navigate('dashboard')" id="btn-nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                     <i class="fa-solid fa-chart-pie text-sm"></i> Ikhtisar & Ringkasan
                 </button>
             `;
 
             if (auth.canSetorTarik) {
                 html += `
-                    <button onclick="navigate('setor')" id="btn-nav-setor" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('setor')" id="btn-nav-setor" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-money-bill-transfer text-sm"></i> Setor / Tarik Tunai
                     </button>
                 `;
@@ -739,7 +1013,7 @@
 
             if (auth.canKelolaSiswa) {
                 html += `
-                    <button onclick="navigate('siswa')" id="btn-nav-siswa" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('siswa')" id="btn-nav-siswa" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-users text-sm"></i> Kelola Siswa & Kelas
                     </button>
                 `;
@@ -747,7 +1021,7 @@
 
             if (auth.canCetakMutasi) {
                 html += `
-                    <button onclick="navigate('cetak')" id="btn-nav-cetak" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('cetak')" id="btn-nav-cetak" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-book-open-reader text-sm"></i> Buku Tabungan
                     </button>
                 `;
@@ -756,7 +1030,7 @@
             // Kunci Menu Panduan & Kode GAS hanya bisa dilihat oleh peran Manager saja
             if (currentUser.role === "manager") {
                 html += `
-                    <button onclick="navigate('blueprint')" id="btn-nav-blueprint" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
+                    <button onclick="window.navigate('blueprint')" id="btn-nav-blueprint" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left">
                         <i class="fa-solid fa-code text-sm"></i> Panduan & Kode GAS
                     </button>
                 `;
@@ -765,16 +1039,16 @@
             if (auth.canConfig) {
                 html += `
                     <div class="h-px bg-slate-800 my-3"></div>
-                    <button onclick="navigate('config')" id="btn-nav-config" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left border border-teal-500/10 bg-teal-500/5 hover:bg-teal-500/10">
+                    <button onclick="window.navigate('config')" id="btn-nav-config" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left border border-teal-500/10 bg-teal-500/5 hover:bg-teal-500/10">
                         <i class="fa-solid fa-sliders text-sm text-teal-400"></i> Konfigurasi & Otoritas
                     </button>
                 `;
             }
 
             nav.innerHTML = html;
-        }
+        };
 
-        function updateSidebarActiveState(tab) {
+        window.updateSidebarActiveState = function(tab) {
             const buttons = document.querySelectorAll('#sidebarNav button');
             buttons.forEach(btn => {
                 const id = btn.id;
@@ -784,11 +1058,11 @@
                     btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left text-slate-400 hover:bg-slate-800/60 hover:text-slate-100";
                 }
             });
-        }
+        };
 
-        function navigate(tab) {
+        window.navigate = function(tab) {
             activeTab = tab;
-            updateSidebarActiveState(tab);
+            window.updateSidebarActiveState(tab);
             
             const contentArea = document.getElementById('dynamicContent');
             contentArea.innerHTML = `<div class="flex items-center justify-center py-20"><div class="w-8 h-8 rounded-full border-4 border-teal-600 border-t-transparent animate-spin"></div></div>`;
@@ -796,53 +1070,53 @@
             setTimeout(() => {
                 switch (tab) {
                     case "dashboard":
-                        renderDashboardView(contentArea);
+                        window.renderDashboardView(contentArea);
                         break;
                     case "setor":
-                        renderSetorTarikView(contentArea);
+                        window.renderSetorTarikView(contentArea);
                         break;
                     case "siswa":
-                        renderKelolaSiswaView(contentArea);
+                        window.renderKelolaSiswaView(contentArea);
                         break;
                     case "cetak":
-                        renderCetakMutasiView(contentArea);
+                        window.renderCetakMutasiView(contentArea);
                         break;
                     case "blueprint":
-                        renderGASBlueprintView(contentArea);
+                        window.renderGASBlueprintView(contentArea);
                         break;
                     case "config":
-                        renderSystemSettingsView(contentArea);
+                        window.renderSystemSettingsView(contentArea);
                         break;
                     default:
                         contentArea.innerHTML = `<h3>Halaman Tidak Ditemukan</h3>`;
                 }
             }, 100);
-        }
+        };
 
-        function openModal(modalId) {
+        window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.remove('hidden');
-        }
+        };
 
-        function closeModal(modalId) {
+        window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.add('hidden');
-        }
+        };
 
-        function formatRupiah(value) {
+        window.formatRupiah = function(value) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
                 minimumFractionDigits: 0
             }).format(value);
-        }
+        };
 
-        function getDashboardStats() {
+        window.getDashboardStats = function() {
             let filteredSiswa = siswas;
             let filteredTx = transactions;
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 filteredSiswa = siswas.filter(s => allowedClasses.includes(s.class));
                 filteredTx = transactions.filter(t => allowedClasses.includes(t.class));
             } else if (currentUser.role === "student_active") {
@@ -858,29 +1132,29 @@
             const totalWithdraw = credits.reduce((sum, c) => sum + c.amount, 0);
 
             return { totalBalance, totalStudents, totalDeposit, totalWithdraw, txCount: filteredTx.length };
-        }
+        };
 
-        function getFilteredTransactions() {
+        window.getFilteredTransactions = function() {
             let list = [...transactions];
             list.sort((a, b) => b.date.localeCompare(a.date));
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 return list.filter(t => allowedClasses.includes(t.class));
             } else if (currentUser.role === "student_active") {
                 return list.filter(t => t.studentId === currentUser.username);
             }
             return list;
-        }
+        };
 
         // ========================================================
         // VIEW RENDERERS
         // ========================================================
-        function renderDashboardView(container) {
-            const stats = getDashboardStats();
+        window.renderDashboardView = function(container) {
+            const stats = window.getDashboardStats();
             let classBadgeInfo = "";
             if (currentUser.role === "teacher") {
-                const assigned = getTeacherClasses(currentUser.username).join(', ');
+                const assigned = window.getTeacherClasses(currentUser.username).join(', ');
                 classBadgeInfo = `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">Monitor Kelas: ${assigned || 'Belum Ditugaskan'}</span>`;
             }
 
@@ -899,21 +1173,21 @@
                         <div class="bg-gradient-to-br from-teal-700 to-teal-800 p-5 rounded-2xl text-white space-y-2 shadow-md relative overflow-hidden">
                             <div class="absolute right-[-10px] bottom-[-10px] opacity-10 text-7xl"><i class="fa-solid fa-vault"></i></div>
                             <p class="text-[10px] font-bold uppercase tracking-wider text-teal-100">Total Sisa Saldo Tabungan</p>
-                            <h3 class="text-xl font-black">${formatRupiah(stats.totalBalance)}</h3>
+                            <h3 class="text-xl font-black">${window.formatRupiah(stats.totalBalance)}</h3>
                             <p class="text-[9px] text-teal-200">Liabilitas madrasah kepada nasabah siswa</p>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-100 space-y-2 shadow-xs relative overflow-hidden">
                             <div class="absolute right-[-10px] bottom-[-10px] opacity-5 text-7xl text-emerald-600"><i class="fa-solid fa-arrow-trend-up"></i></div>
                             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tabungan Masuk (Debit)</p>
-                            <h3 class="text-xl font-black text-emerald-600">${formatRupiah(stats.totalDeposit)}</h3>
+                            <h3 class="text-xl font-black text-emerald-600">${window.formatRupiah(stats.totalDeposit)}</h3>
                             <p class="text-[9px] text-slate-400">Total setoran yang terkumpul</p>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-100 space-y-2 shadow-xs relative overflow-hidden">
                             <div class="absolute right-[-10px] bottom-[-10px] opacity-5 text-7xl text-rose-600"><i class="fa-solid fa-arrow-trend-down"></i></div>
                             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Penarikan (Kredit)</p>
-                            <h3 class="text-xl font-black text-rose-600">${formatRupiah(stats.totalWithdraw)}</h3>
+                            <h3 class="text-xl font-black text-rose-600">${window.formatRupiah(stats.totalWithdraw)}</h3>
                             <p class="text-[9px] text-slate-400">Total dana ditarik oleh siswa</p>
                         </div>
 
@@ -947,7 +1221,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
-                                        ${getFilteredTransactions().slice(0, 5).map(tx => `
+                                        ${window.getFilteredTransactions().slice(0, 5).map(tx => `
                                             <tr class="hover:bg-slate-50/50">
                                                 <td class="py-3 font-medium">
                                                     <span class="text-slate-800 block">${tx.date}</span>
@@ -961,9 +1235,9 @@
                                                     </span>
                                                 </td>
                                                 <td class="py-3 text-right font-extrabold ${tx.type === 'debit' ? 'text-emerald-600' : 'text-rose-600'}">
-                                                    ${tx.type === 'debit' ? '+' : '-'}${formatRupiah(tx.amount)}
+                                                    ${tx.type === 'debit' ? '+' : '-'}${window.formatRupiah(tx.amount)}
                                                 </td>
-                                                <td class="py-3 text-right text-slate-500 font-medium">${formatRupiah(tx.balanceSnap)}</td>
+                                                <td class="py-3 text-right text-slate-500 font-medium">${window.formatRupiah(tx.balanceSnap)}</td>
                                             </tr>
                                         `).join('')}
                                         ${stats.txCount === 0 ? `<tr><td colspan="6" class="text-center py-10 text-slate-400 font-semibold">Tidak ada riwayat transaksi</td></tr>` : ''}
@@ -982,7 +1256,7 @@
                                     <h4 class="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
                                         <i class="fa-solid fa-circle-check text-emerald-600"></i> Saldo Mengendap Minimum
                                     </h4>
-                                    <p class="text-[11px] leading-relaxed">Batas aman saldo tabungan siswa yang tidak boleh ditarik adalah <strong class="text-slate-800">${formatRupiah(instDetails.minBalance)}</strong>.</p>
+                                    <p class="text-[11px] leading-relaxed">Batas aman saldo tabungan siswa yang tidak boleh ditarik adalah <strong class="text-slate-800">${window.formatRupiah(instDetails.minBalance)}</strong>.</p>
                                 </div>
 
                                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
@@ -1005,24 +1279,24 @@
                     </div>
                 </div>
             `;
-        }
+        };
 
         // VIEW: SETOR / TARIK TUNAI
-        function renderSetorTarikView(container) {
+        window.renderSetorTarikView = function(container) {
             let classOptionsHTML = "";
             let teacherFilterHTML = "";
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 classOptionsHTML = allowedClasses.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('');
             } else {
                 classOptionsHTML = `<option value="">Semua Kelas</option>` + classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
                 
                 // Tambahkan filter Wali Kelas untuk Admin/Manager
-                const teachers = getTeacherList();
+                const teachers = window.getTeacherList();
                 teacherFilterHTML = `
                     <div class="w-full md:w-56">
-                        <select id="setor_teacher_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="setor_teacher_select" onchange="window.handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">Semua Wali Kelas</option>
                             ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
                         </select>
@@ -1039,7 +1313,7 @@
                             </h1>
                             <p class="text-xs text-slate-400 font-medium">Cari nasabah siswa untuk memasukkan atau menarik tabungan tunai</p>
                         </div>
-                        <button onclick="triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
+                        <button onclick="window.triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
                             <i class="fa-solid fa-user-plus"></i> Tambah Rekening Siswa Baru
                         </button>
                     </div>
@@ -1049,10 +1323,10 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </span>
-                            <input type="text" id="setor_search_input" oninput="handleSetorFilterChange()" placeholder="Cari ID Rekening atau nama siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <input type="text" id="setor_search_input" oninput="window.handleSetorFilterChange()" placeholder="Cari ID Rekening atau nama siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                         </div>
                         <div class="w-full md:w-48">
-                            <select id="setor_class_select" onchange="handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <select id="setor_class_select" onchange="window.handleSetorFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                                 ${classOptionsHTML}
                             </select>
                         </div>
@@ -1064,14 +1338,14 @@
                     </div>
                 </div>
             `;
-            renderSetorSiswaCards();
-        }
+            window.renderSetorSiswaCards();
+        };
 
-        function handleSetorFilterChange() {
-            renderSetorSiswaCards();
-        }
+        window.handleSetorFilterChange = function() {
+            window.renderSetorSiswaCards();
+        };
 
-        function renderSetorSiswaCards() {
+        window.renderSetorSiswaCards = function() {
             const grid = document.getElementById('setorSiswaGrid');
             if (!grid) return;
 
@@ -1082,11 +1356,11 @@
             let list = [...siswas];
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 list = list.filter(s => allowedClasses.includes(s.class));
             } else if (teacherIn) {
                 // Filter by Wali Kelas (mencari kelas apa saja yang dimiliki oleh guru ini)
-                const teacherClasses = getTeacherClasses(teacherIn);
+                const teacherClasses = window.getTeacherClasses(teacherIn);
                 list = list.filter(s => teacherClasses.includes(s.class));
             }
 
@@ -1125,37 +1399,37 @@
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Berjalan</span>
-                            <strong class="text-slate-800 text-xs font-black">${formatRupiah(s.balance)}</strong>
+                            <strong class="text-slate-800 text-xs font-black">${window.formatRupiah(s.balance)}</strong>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
+                            <button onclick="window.triggerTransactionModal('${s.id}', 'debit')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 shadow-xs transition-all">
                                 <i class="fa-solid fa-plus-circle"></i> Setor Tunai
                             </button>
-                            <button onclick="triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
+                            <button onclick="window.triggerTransactionModal('${s.id}', 'kredit')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[10px] py-2 px-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all">
                                 <i class="fa-solid fa-minus-circle"></i> Tarik Tunai
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
+        };
 
         // VIEW: KELOLA SISWA
-        function renderKelolaSiswaView(container) {
+        window.renderKelolaSiswaView = function(container) {
             let classOptionsHTML = "";
             let teacherFilterHTML = "";
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 classOptionsHTML = allowedClasses.map(cls => `<option value="${cls}">Kelas ${cls}</option>`).join('');
             } else {
                 classOptionsHTML = `<option value="">Semua Kelas</option>` + classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
                 
-                const teachers = getTeacherList();
+                const teachers = window.getTeacherList();
                 teacherFilterHTML = `
                     <div class="w-full md:w-56">
-                        <select id="siswa_teacher_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="siswa_teacher_select" onchange="window.handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">Semua Wali Kelas</option>
                             ${teachers.map(t => `<option value="${t.username}">${t.realName}</option>`).join('')}
                         </select>
@@ -1172,7 +1446,7 @@
                             </h1>
                             <p class="text-xs text-slate-400 font-medium">Edit status, nomor telepon wali, pendaftaran nasabah tabungan baru</p>
                         </div>
-                        <button onclick="triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
+                        <button onclick="window.triggerNewStudentModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
                             <i class="fa-solid fa-user-plus"></i> Daftarkan Siswa Baru
                         </button>
                     </div>
@@ -1182,10 +1456,10 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </span>
-                            <input type="text" id="siswa_search_input" oninput="handleSiswaFilterChange()" placeholder="Cari ID, Nama Siswa, atau No. Handphone..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <input type="text" id="siswa_search_input" oninput="window.handleSiswaFilterChange()" placeholder="Cari ID, Nama Siswa, atau No. Handphone..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                         </div>
                         <div class="w-full md:w-48">
-                            <select id="siswa_class_select" onchange="handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                            <select id="siswa_class_select" onchange="window.handleSiswaFilterChange()" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                                 ${classOptionsHTML}
                             </select>
                         </div>
@@ -1214,14 +1488,14 @@
                     </div>
                 </div>
             `;
-            renderSiswaTableRows();
-        }
+            window.renderSiswaTableRows();
+        };
 
-        function handleSiswaFilterChange() {
-            renderSiswaTableRows();
-        }
+        window.handleSiswaFilterChange = function() {
+            window.renderSiswaTableRows();
+        };
 
-        function renderSiswaTableRows() {
+        window.renderSiswaTableRows = function() {
             const tbody = document.getElementById('siswaTableBody');
             if (!tbody) return;
 
@@ -1232,10 +1506,10 @@
             let list = [...siswas];
 
             if (currentUser.role === "teacher") {
-                const allowedClasses = getTeacherClasses(currentUser.username);
+                const allowedClasses = window.getTeacherClasses(currentUser.username);
                 list = list.filter(s => allowedClasses.includes(s.class));
             } else if (teacherIn) {
-                const teacherClasses = getTeacherClasses(teacherIn);
+                const teacherClasses = window.getTeacherClasses(teacherIn);
                 list = list.filter(s => teacherClasses.includes(s.class));
             }
 
@@ -1261,7 +1535,7 @@
                         <span class="text-slate-800 block">${s.parentName}</span>
                         <span class="text-[10px] text-slate-400 block font-mono">${s.phone}</span>
                     </td>
-                    <td class="py-3.5 text-right font-black text-slate-800">${formatRupiah(s.balance)}</td>
+                    <td class="py-3.5 text-right font-black text-slate-800">${window.formatRupiah(s.balance)}</td>
                     <td class="py-3.5 text-center">
                         <span class="px-2 py-0.5 rounded-full font-bold text-[9px] ${s.status === 'Aktif' ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
                             ${s.status}
@@ -1269,19 +1543,19 @@
                     </td>
                     <td class="py-3.5 text-center">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editSiswaInline('${s.id}')" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold p-1.5 rounded-lg transition-all" title="Edit Data">
+                            <button onclick="window.editSiswaInline('${s.id}')" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold p-1.5 rounded-lg transition-all" title="Edit Data">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button onclick="printPassbook('${s.id}')" class="bg-teal-50 hover:bg-teal-100 text-teal-800 p-1.5 rounded-lg font-bold transition-all" title="Cetak Buku Tabungan">
+                            <button onclick="window.printPassbook('${s.id}')" class="bg-teal-50 hover:bg-teal-100 text-teal-800 p-1.5 rounded-lg font-bold transition-all" title="Cetak Buku Tabungan">
                                 <i class="fa-solid fa-print"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             `).join('');
-        }
+        };
 
-        function editSiswaInline(id) {
+        window.editSiswaInline = function(id) {
             const s = siswas.find(x => x.id === id);
             if (!s) return;
 
@@ -1293,13 +1567,13 @@
             if (phoneNew !== null) s.phone = phoneNew.trim() || s.phone;
             if (statusNew !== null) s.status = statusNew.trim() || s.status;
 
-            saveToLocalStorage();
-            showToast("Data identitas siswa berhasil diperbarui!");
-            renderSiswaTableRows();
-        }
+            window.saveToLocalStorage();
+            window.showToast("Data identitas siswa berhasil diperbarui!");
+            window.renderSiswaTableRows();
+        };
 
         // VIEW: BUKU TABUNGAN & MUTASI
-        function renderCetakMutasiView(container) {
+        window.renderCetakMutasiView = function(container) {
             let selectStudentHTML = "";
             let descriptionText = "Pilih nasabah siswa di bawah ini untuk meninjau riwayat mutasi finansial buku tabungan.";
 
@@ -1317,14 +1591,14 @@
             } else {
                 let targetSiswaList = [...siswas];
                 if (currentUser.role === "teacher") {
-                    const allowedClasses = getTeacherClasses(currentUser.username);
+                    const allowedClasses = window.getTeacherClasses(currentUser.username);
                     targetSiswaList = siswas.filter(s => allowedClasses.includes(s.class));
                 }
 
                 selectStudentHTML = `
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-500 uppercase block">Silakan Pilih Nasabah Siswa:</label>
-                        <select id="cetak_student_id" onchange="loadCetakPreviewTable()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
+                        <select id="cetak_student_id" onchange="window.loadCetakPreviewTable()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none text-xs font-semibold focus:ring-2 focus:ring-teal-500">
                             <option value="">-- Pilih Rekening Siswa --</option>
                             ${targetSiswaList.map(s => `<option value="${s.id}">[Kelas ${s.class}] - ${s.id} - ${s.name}</option>`).join('')}
                         </select>
@@ -1356,7 +1630,7 @@
                                 </ul>
                             </div>
 
-                            <button onclick="triggerPrintPassbook()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+                            <button onclick="window.triggerPrintPassbook()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-print"></i> Cetak Buku Tabungan (Passbook)
                             </button>
                         </div>
@@ -1387,11 +1661,11 @@
             `;
 
             if (currentUser.role === "student_active") {
-                loadCetakPreviewTable();
+                window.loadCetakPreviewTable();
             }
-        }
+        };
 
-        function loadCetakPreviewTable() {
+        window.loadCetakPreviewTable = function() {
             const sid = document.getElementById('cetak_student_id').value;
             const tbody = document.getElementById('cetakPreviewBody');
             if (!tbody) return;
@@ -1420,26 +1694,26 @@
                         </span>
                     </td>
                     <td class="py-3 text-right font-extrabold ${tx.type === 'debit' ? 'text-emerald-600' : 'text-rose-600'}">
-                        ${tx.type === 'debit' ? '+' : '-'}${formatRupiah(tx.amount)}
+                        ${tx.type === 'debit' ? '+' : '-'}${window.formatRupiah(tx.amount)}
                     </td>
-                    <td class="py-3 text-right text-slate-700 font-bold">${formatRupiah(tx.balanceSnap)}</td>
+                    <td class="py-3 text-right text-slate-700 font-bold">${window.formatRupiah(tx.balanceSnap)}</td>
                     <td class="py-3">
                         <span class="text-slate-800 block text-xs truncate max-w-[150px]" title="${tx.desc}">${tx.desc}</span>
                         <span class="text-[9px] text-slate-400 block">Teller: ${tx.admin}</span>
                     </td>
                 </tr>
             `).join('');
-        }
+        };
 
         // --- HANDLER MODAL TRANSAKSI ---
-        function triggerTransactionModal(studentId, type) {
+        window.triggerTransactionModal = function(studentId, type) {
             const s = siswas.find(x => x.id === studentId);
             if (!s) return;
 
             document.getElementById('txModalStudentId').value = s.id;
             document.getElementById('txModalName').innerText = s.name;
             document.getElementById('txModalClass').innerText = `Kelas ${s.class}`;
-            document.getElementById('txModalBalance').innerText = formatRupiah(s.balance);
+            document.getElementById('txModalBalance').innerText = window.formatRupiah(s.balance);
 
             if (type === 'debit') {
                 document.getElementById('tx_type_debit').checked = true;
@@ -1450,26 +1724,26 @@
             document.getElementById('tx_amount').value = '';
             document.getElementById('tx_desc').value = '';
 
-            updateMinWithdrawWarning();
-            openModal('modalNewTransaction');
-        }
+            window.updateMinWithdrawWarning();
+            window.openModal('modalNewTransaction');
+        };
 
-        function updateMinWithdrawWarning() {
+        window.updateMinWithdrawWarning = function() {
             const type = document.querySelector('input[name="tx_type"]:checked').value;
             const warning = document.getElementById('withdrawWarning');
             const studentId = document.getElementById('txModalStudentId').value;
             const s = siswas.find(x => x.id === studentId);
 
-            document.getElementById('withdrawMinVal').innerText = formatRupiah(instDetails.minBalance);
+            document.getElementById('withdrawMinVal').innerText = window.formatRupiah(instDetails.minBalance);
 
             if (type === 'kredit' && s) {
                 warning.classList.remove('hidden');
             } else {
                 warning.classList.add('hidden');
             }
-        }
+        };
 
-        function submitNewTransaction(event) {
+        window.submitNewTransaction = function(event) {
             event.preventDefault();
             const sid = document.getElementById('txModalStudentId').value;
             const type = document.querySelector('input[name="tx_type"]:checked').value;
@@ -1480,14 +1754,14 @@
             if (!s) return;
 
             if (amount <= 0) {
-                showToast("Jumlah nominal transaksi harus lebih besar dari nol!", true);
+                window.showToast("Jumlah nominal transaksi harus lebih besar dari nol!", true);
                 return;
             }
 
             if (type === 'kredit') {
                 const availableBalance = s.balance - instDetails.minBalance;
                 if (amount > availableBalance) {
-                    showToast(`Penarikan gagal! Saldo wajib tersisa minimal ${formatRupiah(instDetails.minBalance)} di dalam buku rekening.`, true);
+                    window.showToast(`Penarikan gagal! Saldo wajib tersisa minimal ${window.formatRupiah(instDetails.minBalance)} di dalam buku rekening.`, true);
                     return;
                 }
             }
@@ -1519,20 +1793,20 @@
 
             s.balance = nextBalance;
             transactions.unshift(newTx);
-            saveToLocalStorage();
+            window.saveToLocalStorage();
 
-            closeModal('modalNewTransaction');
-            showToast(`Transaksi ${type === 'debit' ? 'Setoran' : 'Penarikan'} senilai ${formatRupiah(amount)} berhasil disimpan!`);
+            window.closeModal('modalNewTransaction');
+            window.showToast(`Transaksi ${type === 'debit' ? 'Setoran' : 'Penarikan'} senilai ${window.formatRupiah(amount)} berhasil disimpan!`);
 
             if (activeTab === "dashboard") {
-                renderDashboardView(document.getElementById('dynamicContent'));
+                window.renderDashboardView(document.getElementById('dynamicContent'));
             } else if (activeTab === "setor") {
-                renderSetorSiswaCards();
+                window.renderSetorSiswaCards();
             }
-        }
+        };
 
         // --- HANDLER DAFTAR SISWA BARU ---
-        function triggerNewStudentModal() {
+        window.triggerNewStudentModal = function() {
             const classSelect = document.getElementById('m_stu_class');
             classSelect.innerHTML = classes.map(cls => `<option value="${cls.id}">Kelas ${cls.id}</option>`).join('');
             
@@ -1541,10 +1815,10 @@
             document.getElementById('m_stu_phone').value = '';
             document.getElementById('m_stu_deposit').value = '';
 
-            openModal('modalNewStudent');
-        }
+            window.openModal('modalNewStudent');
+        };
 
-        function submitNewStudent(event) {
+        window.submitNewStudent = function(event) {
             event.preventDefault();
             const name = document.getElementById('m_stu_name').value.trim();
             const cls = document.getElementById('m_stu_class').value;
@@ -1553,7 +1827,7 @@
             const deposit = parseInt(document.getElementById('m_stu_deposit').value);
 
             if (deposit < 10000) {
-                showToast("Setoran awal minimum pembukaan buku tabungan senilai Rp10.000", true);
+                window.showToast("Setoran awal minimum pembukaan buku tabungan senilai Rp10.000", true);
                 return;
             }
 
@@ -1590,29 +1864,29 @@
 
             siswas.push(newSiswa);
             transactions.unshift(initialTx);
-            saveToLocalStorage();
+            window.saveToLocalStorage();
 
-            closeModal('modalNewStudent');
-            showToast(`Pendaftaran Berhasil! No. Rekening Siswa: ${nextId}`);
+            window.closeModal('modalNewStudent');
+            window.showToast(`Pendaftaran Berhasil! No. Rekening Siswa: ${nextId}`);
 
             if (activeTab === "siswa") {
-                renderSiswaTableRows();
+                window.renderSiswaTableRows();
             } else if (activeTab === "setor") {
-                renderSetorSiswaCards();
+                window.renderSetorSiswaCards();
             }
-        }
+        };
 
         // --- HANDLER PRINT PASSBOOK ---
-        function triggerPrintPassbook() {
+        window.triggerPrintPassbook = function() {
             const sid = document.getElementById('cetak_student_id').value;
             if (!sid) {
-                showToast("Silakan tentukan nasabah siswa terlebih dahulu sebelum mencetak!", true);
+                window.showToast("Silakan tentukan nasabah siswa terlebih dahulu sebelum mencetak!", true);
                 return;
             }
-            printPassbook(sid);
-        }
+            window.printPassbook(sid);
+        };
 
-        function printPassbook(studentId) {
+        window.printPassbook = function(studentId) {
             const s = siswas.find(x => x.id === studentId);
             if (!s) return;
 
@@ -1640,36 +1914,49 @@
                         <td class="py-1.5 font-mono text-[9px]">${tx.date.split(' ')[0]}</td>
                         <td class="py-1.5 text-[9px]">${tx.id.split('-')[2]} / ${tx.admin.split(' ')[0]}</td>
                         <td class="py-1.5 text-center font-bold text-[9px]">${tx.type === 'debit' ? 'D' : 'K'}</td>
-                        <td class="py-1.5 text-right font-mono text-[9px]">${tx.type === 'debit' ? formatRupiah(tx.amount) : '-'}</td>
-                        <td class="py-1.5 text-right font-mono text-[9px]">${tx.type === 'kredit' ? formatRupiah(tx.amount) : '-'}</td>
-                        <td class="py-1.5 text-right font-bold font-mono text-[9px] text-slate-900">${formatRupiah(tx.balanceSnap)}</td>
+                        <td class="py-1.5 text-right font-mono text-[9px]">${tx.type === 'debit' ? window.formatRupiah(tx.amount) : '-'}</td>
+                        <td class="py-1.5 text-right font-mono text-[9px]">${tx.type === 'kredit' ? window.formatRupiah(tx.amount) : '-'}</td>
+                        <td class="py-1.5 text-right font-bold font-mono text-[9px] text-slate-900">${window.formatRupiah(tx.balanceSnap)}</td>
                     </tr>
                 `).join('');
             }
 
-            openModal('modalPrintPassbook');
-        }
+            window.openModal('modalPrintPassbook');
+        };
 
-        function executePrint() {
-            showToast("Membuka Layanan Cetak Fisik System Printer...");
+        window.executePrint = function() {
+            window.showToast("Membuka Layanan Cetak Fisik System Printer...");
             const printContent = document.getElementById('printArea').innerHTML;
-            const win = window.open('', '', 'height=600,width=800');
-            win.document.write('<html><head><title>Cetak Buku Tabungan - SITAS</title>');
-            win.document.write('<style>body{font-family:monospace;padding:30px;color:#1e293b;} table{width:100%;border-collapse:collapse;margin:15px 0;} th,td{border-bottom:1px solid #cbd5e1;padding:6px;font-size:11px;} th{text-align:left;} .text-right{text-align:right;} .text-center{text-align:center;}</style>');
-            win.document.write('</head><body>');
-            win.document.write(printContent);
-            win.document.write('</body></html>');
-            win.document.close();
-            win.focus();
+            
+            // Hidden Iframe Injection Bypass
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0px';
+            iframe.style.height = '0px';
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write('<html><head><title>Cetak Buku Tabungan - SITAS</title>');
+            doc.write('<style>body{font-family:monospace;padding:30px;color:#1e293b;} table{width:100%;border-collapse:collapse;margin:15px 0;} th,td{border-bottom:1px solid #cbd5e1;padding:6px;font-size:11px;} th{text-align:left;} .text-right{text-align:right;} .text-center{text-align:center;}</style>');
+            doc.write('</head><body>');
+            doc.write(printContent);
+            doc.write('</body></html>');
+            doc.close();
+
             setTimeout(() => {
-                win.print();
-                win.close();
-            }, 350);
-        }
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                document.body.removeChild(iframe);
+            }, 500);
+        };
 
         // VIEW: KONFIGURASI MANAGER
-        function renderSystemSettingsView(container) {
-            const teachers = getTeacherList();
+        window.renderSystemSettingsView = function(container) {
+            const teachers = window.getTeacherList();
 
             container.innerHTML = `
                 <div class="space-y-6">
@@ -1689,7 +1976,7 @@
                                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
                                     <i class="fa-solid fa-school text-teal-600"></i> Identitas & Konfigurasi Lembaga
                                 </h3>
-                                <form onsubmit="saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
+                                <form onsubmit="window.saveInstDetails(event)" class="grid grid-cols-2 gap-4 text-xs font-medium">
                                     <div class="space-y-1">
                                         <label class="text-slate-500 font-bold block">Nama Madrasah / Lembaga</label>
                                         <input type="text" id="inst_name" required value="${instDetails.name}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
@@ -1712,7 +1999,7 @@
                                     </div>
                                     <div class="col-span-2 space-y-1">
                                         <label class="text-slate-500 font-bold block">URL Google Apps Script Deployment</label>
-                                        <input type="url" id="inst_gas_url" placeholder="https://script.google.com/macros/s/.../exec" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
+                                        <input type="url" id="inst_gas_url" placeholder="Mendeteksi otomatis jika di-deploy sebagai Web App di Google" value="${instDetails.gasURL || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-teal-500 text-xs">
                                     </div>
                                     <div class="col-span-2 flex justify-end">
                                         <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition-all">Simpan Identitas Lembaga</button>
@@ -1726,7 +2013,7 @@
                                     <span class="flex items-center gap-2">
                                         <i class="fa-solid fa-graduation-cap text-teal-600"></i> Tata Kelola Kelas & Wali Kelas
                                     </span>
-                                    <button onclick="triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
+                                    <button onclick="window.triggerAddClassInline()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition-all">
                                         + Tambah Kelas Baru
                                     </button>
                                 </h3>
@@ -1749,14 +2036,14 @@
                                                     <tr>
                                                         <td class="p-2.5 font-bold text-slate-800">Kelas ${cls.id}</td>
                                                         <td class="p-2.5">
-                                                            <select onchange="updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
+                                                            <select onchange="window.updateClassTeacher('${cls.id}', this.value)" class="px-2 py-1 rounded-lg border border-slate-200 outline-none text-xs focus:ring-1 focus:ring-teal-500">
                                                                 <option value="">-- Tanpa Wali Kelas --</option>
                                                                 ${teachers.map(t => `<option value="${t.username}" ${cls.teacherUsername === t.username ? 'selected' : ''}>${t.realName}</option>`).join('')}
                                                             </select>
                                                         </td>
                                                         <td class="p-2.5 text-center font-bold text-slate-500">${totalStu} Siswa</td>
                                                         <td class="p-2.5 text-center">
-                                                            <button onclick="deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
+                                                            <button onclick="window.deleteClassInline('${cls.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Kelas">
                                                                 <i class="fa-solid fa-trash-can"></i>
                                                             </button>
                                                         </td>
@@ -1786,21 +2073,21 @@
                                         <tbody class="divide-y divide-slate-100">
                                             <tr>
                                                 <td class="py-2.5 font-bold text-slate-800">Admin Utama (Tata Usaha)</td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('admin', 'canSetorTarik')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('admin', 'canKelolaSiswa')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('admin', 'canCetakMutasi')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canSetorTarik ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canSetorTarik')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canKelolaSiswa ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canKelolaSiswa')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.admin.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('admin', 'canCetakMutasi')"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 font-bold text-slate-800">Guru Wali Kelas (Guru)</td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canSetorTarik')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canKelolaSiswa')"></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('teacher', 'canCetakMutasi')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canSetorTarik ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canSetorTarik')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canKelolaSiswa ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canKelolaSiswa')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.teacher.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('teacher', 'canCetakMutasi')"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 font-bold text-slate-800">Nasabah (Siswa / Wali Murid)</td>
                                                 <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
                                                 <td class="py-2.5 text-center"><span class="text-slate-400 text-[10px] font-bold">X</span></td>
-                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="toggleAuthority('student_active', 'canCetakMutasi')"></td>
+                                                <td class="py-2.5 text-center"><input type="checkbox" ${roleAuthorities.student_active.canCetakMutasi ? 'checked' : ''} onchange="window.toggleAuthority('student_active', 'canCetakMutasi')"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1816,7 +2103,7 @@
                                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                                         <i class="fa-solid fa-users-gear"></i> Kredensial Staff
                                     </h3>
-                                    <button onclick="triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
+                                    <button onclick="window.triggerAddStaff()" class="bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-800 font-bold text-[9px] px-2 py-1 rounded-lg transition-all">
                                         + Tambah Staff
                                     </button>
                                 </div>
@@ -1834,8 +2121,8 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1">
-                                                <button onclick="editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                                                <button onclick="deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                                                <button onclick="window.editStaff('${user.username}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                                                <button onclick="window.deleteStaff('${user.username}')" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -1850,10 +2137,10 @@
                                 <p class="text-[11px] text-rose-700 leading-relaxed">Manager berhak mengosongkan seluruh riwayat tabungan siswa untuk keperluan awal tahun ajaran baru atau pengujian sistem simulasi.</p>
                                 
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button onclick="executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
+                                    <button onclick="window.executeResetDatabase('demo')" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] py-2.5 px-2 rounded-xl border border-rose-200 transition-all text-center flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-arrows-rotate"></i> Reset ke Demo
                                     </button>
-                                    <button onclick="executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
+                                    <button onclick="window.executeResetDatabase('empty')" class="bg-rose-800 hover:bg-rose-700 text-white font-bold text-[10px] py-2.5 px-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 shadow-sm">
                                         <i class="fa-solid fa-trash-can"></i> Kosongkan Total
                                     </button>
                                 </div>
@@ -1862,16 +2149,16 @@
                     </div>
                 </div>
             `;
-        }
+        };
 
         // --- MANAJEMEN KELAS & WALI KELAS INLINE ---
-        function triggerAddClassInline() {
+        window.triggerAddClassInline = function() {
             const classId = prompt("Masukkan ID/Nama Tingkat Kelas Baru (Contoh: 1-C, 5-A, atau 6):");
             if (!classId) return;
 
             const trimmedId = classId.trim().toUpperCase();
             if (classes.some(c => c.id === trimmedId)) {
-                showToast("ID Kelas tersebut sudah terdaftar!", true);
+                window.showToast("ID Kelas tersebut sudah terdaftar!", true);
                 return;
             }
 
@@ -1880,41 +2167,41 @@
                 teacherUsername: ""
             });
 
-            saveToLocalStorage();
-            showToast(`Berhasil menambahkan Kelas ${trimmedId}!`);
-            renderSystemSettingsView(document.getElementById('dynamicContent'));
-        }
+            window.saveToLocalStorage();
+            window.showToast(`Berhasil menambahkan Kelas ${trimmedId}!`);
+            window.renderSystemSettingsView(document.getElementById('dynamicContent'));
+        };
 
-        function deleteClassInline(classId) {
+        window.deleteClassInline = function(classId) {
             // Pengaman: Periksa apakah masih ada siswa di kelas tersebut
             const hasSiswa = siswas.some(s => s.class === classId);
             if (hasSiswa) {
-                showToast(`Gagal menghapus! Masih terdapat siswa terdaftar aktif di Kelas ${classId}. Pindahkan siswa terlebih dahulu.`, true);
+                window.showToast(`Gagal menghapus! Masih terdapat siswa terdaftar aktif di Kelas ${classId}. Pindahkan siswa terlebih dahulu.`, true);
                 return;
             }
 
-            showConfirm(
+            window.showConfirm(
                 "Hapus Kelas",
                 `Apakah Anda yakin ingin menghapus Kelas ${classId}?`,
                 () => {
                     classes = classes.filter(c => c.id !== classId);
-                    saveToLocalStorage();
-                    showToast(`Kelas ${classId} berhasil dihapus!`);
-                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                    window.saveToLocalStorage();
+                    window.showToast(`Kelas ${classId} berhasil dihapus!`);
+                    window.renderSystemSettingsView(document.getElementById('dynamicContent'));
                 }
             );
-        }
+        };
 
-        function updateClassTeacher(classId, teacherUsername) {
+        window.updateClassTeacher = function(classId, teacherUsername) {
             const cls = classes.find(c => c.id === classId);
             if (cls) {
                 cls.teacherUsername = teacherUsername;
-                saveToLocalStorage();
-                showToast(`Wali Kelas ${classId} berhasil diperbarui!`);
+                window.saveToLocalStorage();
+                window.showToast(`Wali Kelas ${classId} berhasil diperbarui!`);
             }
-        }
+        };
 
-        function saveInstDetails(event) {
+        window.saveInstDetails = function(event) {
             event.preventDefault();
             instDetails.name = document.getElementById('inst_name').value.trim();
             instDetails.academicYear = document.getElementById('inst_year').value.trim();
@@ -1926,30 +2213,30 @@
             document.getElementById('headerInstName').innerText = instDetails.name.toUpperCase();
             document.getElementById('headerInstAddress').innerText = instDetails.address;
 
-            saveToLocalStorage();
-            showToast("Konfigurasi identitas lembaga berhasil disimpan!");
-            renderSystemSettingsView(document.getElementById('dynamicContent'));
-        }
+            window.saveToLocalStorage();
+            window.showToast("Konfigurasi identitas lembaga berhasil disimpan!");
+            window.renderSystemSettingsView(document.getElementById('dynamicContent'));
+        };
 
-        function toggleAuthority(role, feature) {
+        window.toggleAuthority = function(role, feature) {
             roleAuthorities[role][feature] = !roleAuthorities[role][feature];
-            saveToLocalStorage();
-            showToast("Perubahan hak akses otoritas berhasil disimpan!");
-            buildSidebarMenu();
-        }
+            window.saveToLocalStorage();
+            window.showToast("Perubahan hak akses otoritas berhasil disimpan!");
+            window.buildSidebarMenu();
+        };
 
         // --- MANAGING STAFF ACCOUNT CRUD ---
-        function triggerAddStaff() {
+        window.triggerAddStaff = function() {
             document.getElementById('staffModalTitle').innerHTML = `<i class="fa-solid fa-user-plus text-teal-600"></i> Tambah Akun Staff Baru`;
             document.getElementById('staff_edit_id').value = "";
             document.getElementById('staff_name').value = "";
             document.getElementById('staff_username').value = "";
             document.getElementById('staff_password').value = "";
             document.getElementById('staff_role').value = "teacher";
-            openModal('modalStaffEdit');
-        }
+            window.openModal('modalStaffEdit');
+        };
 
-        function editStaff(username) {
+        window.editStaff = function(username) {
             const u = userDatabase.find(x => x.username === username);
             if (!u) return;
 
@@ -1959,10 +2246,10 @@
             document.getElementById('staff_username').value = u.username;
             document.getElementById('staff_password').value = u.password;
             document.getElementById('staff_role').value = u.role;
-            openModal('modalStaffEdit');
-        }
+            window.openModal('modalStaffEdit');
+        };
 
-        function submitStaffForm(event) {
+        window.submitStaffForm = function(event) {
             event.preventDefault();
             const editId = document.getElementById('staff_edit_id').value;
             const name = document.getElementById('staff_name').value.trim();
@@ -1989,7 +2276,7 @@
             } else {
                 const exist = userDatabase.find(x => x.username === username);
                 if (exist) {
-                    showToast("Username ini sudah terdaftar!", true);
+                    window.showToast("Username ini sudah terdaftar!", true);
                     return;
                 }
                 userDatabase.push({
@@ -2002,19 +2289,19 @@
                 });
             }
 
-            saveToLocalStorage();
-            closeModal('modalStaffEdit');
-            showToast("Kredensial staff berhasil disimpan!");
-            renderSystemSettingsView(document.getElementById('dynamicContent'));
-        }
+            window.saveToLocalStorage();
+            window.closeModal('modalStaffEdit');
+            window.showToast("Kredensial staff berhasil disimpan!");
+            window.renderSystemSettingsView(document.getElementById('dynamicContent'));
+        };
 
-        function deleteStaff(username) {
+        window.deleteStaff = function(username) {
             if (currentUser.username === username) {
-                showToast("Anda tidak dapat menghapus akun Anda sendiri saat sedang masuk!", true);
+                window.showToast("Anda tidak dapat menghapus akun Anda sendiri saat sedang masuk!", true);
                 return;
             }
 
-            showConfirm(
+            window.showConfirm(
                 "Hapus Akun Staff",
                 `Apakah Anda yakin ingin menghapus kredensial akses untuk user "${username}"?`,
                 () => {
@@ -2023,19 +2310,19 @@
                     classes.forEach(c => {
                         if (c.teacherUsername === username) c.teacherUsername = "";
                     });
-                    saveToLocalStorage();
-                    showToast("Kredensial staff berhasil dihapus!");
-                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                    window.saveToLocalStorage();
+                    window.showToast("Kredensial staff berhasil dihapus!");
+                    window.renderSystemSettingsView(document.getElementById('dynamicContent'));
                 }
             );
-        }
+        };
 
-        function executeResetDatabase(mode) {
+        window.executeResetDatabase = function(mode) {
             const warningText = mode === 'demo' 
                 ? "Konfirmasi: Anda yakin ingin menghapus semua mutasi saat ini dan memulihkan Data Demo bawaan madrasah?"
                 : "Peringatan Kritis: Semua data siswa dan mutasi akan dihilangkan total. Database akan kosong sepenuhnya. Lanjutkan?";
 
-            showConfirm(
+            window.showConfirm(
                 "Konfirmasi Reset Database",
                 warningText,
                 () => {
@@ -2043,43 +2330,50 @@
                         siswas = JSON.parse(JSON.stringify(DEFAULT_SISWAS));
                         transactions = JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS));
                         classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
-                        showToast("Database berhasil di-reset ke Data Simulasi Demo!");
+                        window.showToast("Database berhasil di-reset ke Data Simulasi Demo!");
                     } else {
                         siswas = [];
                         transactions = [];
                         classes = [];
                     }
-                    saveToLocalStorage();
-                    renderSystemSettingsView(document.getElementById('dynamicContent'));
+                    window.saveToLocalStorage();
+                    window.renderSystemSettingsView(document.getElementById('dynamicContent'));
                 }
             );
-        }
+        };
 
         // --- CLOUD SYNC OPERATIONS ---
-        function openSyncHub() {
+        window.openSyncHub = function() {
             const urlText = document.getElementById('syncHubURL');
-            if (instDetails.gasURL) {
-                urlText.innerText = instDetails.gasURL;
+            const detectedUrl = window.getAutoGasUrl();
+            if (detectedUrl) {
+                urlText.innerText = detectedUrl;
             } else {
-                urlText.innerText = "Belum Dikonfigurasi (Atur di Menu Manager)";
+                urlText.innerText = "Belum Dikonfigurasi (Atur di Menu Manager / Jalankan di Google Web App)";
             }
-            openModal('modalSyncHub');
-        }
+            window.openModal('modalSyncHub');
+        };
 
-        function updateSyncBadge() {
+        window.updateSyncBadge = function() {
             const badge = document.getElementById('syncStatusBadge');
+            const autoUrl = window.getAutoGasUrl();
             if (badge) {
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Lokal Aktif`;
+                if (autoUrl) {
+                    badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Cloud Auto Connected`;
+                } else {
+                    badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Lokal Aktif`;
+                }
             }
-        }
+        };
 
-        function cloudPushData() {
-            if (!instDetails.gasURL) {
-                showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi terlebih dahulu.", true);
+        window.cloudPushData = function() {
+            const url = window.getAutoGasUrl();
+            if (!url) {
+                window.showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi atau buka dari Google Apps Script Web App.", true);
                 return;
             }
 
-            showToast("Melakukan upload database...");
+            window.showToast("Melakukan upload database...");
             const payload = {
                 action: "syncDatabase",
                 siswas: siswas,
@@ -2087,29 +2381,30 @@
                 classes: classes
             };
 
-            fetch(instDetails.gasURL, {
+            fetch(url, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                showToast("PUSH Sukses! Perubahan berhasil diunggah ke Google Sheets Anda.");
-                closeModal('modalSyncHub');
+                window.showToast("PUSH Sukses! Perubahan berhasil diunggah ke Google Sheets Anda.");
+                window.closeModal('modalSyncHub');
             })
             .catch(err => {
-                showToast("Push Gagal: " + err.toString(), true);
+                window.showToast("Push Gagal: " + err.toString(), true);
             });
-        }
+        };
 
-        function cloudPullData() {
-            if (!instDetails.gasURL) {
-                showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi terlebih dahulu.", true);
+        window.cloudPullData = function() {
+            const url = window.getAutoGasUrl();
+            if (!url) {
+                window.showToast("Gagal! Mohon isi URL Apps Script Deployment di menu konfigurasi atau buka dari Google Apps Script Web App.", true);
                 return;
             }
 
-            showToast("Menghubungi server cloud...");
+            window.showToast("Menghubungi server cloud...");
             
-            fetch(instDetails.gasURL + "?action=getData")
+            fetch(url + "?action=getData")
             .then(res => res.json())
             .then(data => {
                 if (data.siswas && data.transactions) {
@@ -2118,21 +2413,21 @@
                     if (data.classes) {
                         classes = data.classes;
                     }
-                    saveToLocalStorage();
-                    showToast("PULL Berhasil! Database lokal diperbarui sesuai Google Sheets.");
-                    closeModal('modalSyncHub');
-                    navigate(activeTab);
+                    window.saveToLocalStorage();
+                    window.showToast("PULL Berhasil! Database lokal diperbarui sesuai Google Sheets.");
+                    window.closeModal('modalSyncHub');
+                    window.navigate(activeTab);
                 } else {
-                    showToast("Gagal! Format data response tidak dikenal.", true);
+                    window.showToast("Gagal! Format data response tidak dikenal.", true);
                 }
             })
             .catch(err => {
-                showToast("Koneksi gagal! Pastikan Apps Script Web App sudah di-deploy dengan akses 'Anyone'.", true);
+                window.showToast("Koneksi gagal! Pastikan Apps Script Web App sudah di-deploy dengan akses 'Anyone'.", true);
             });
-        }
+        };
 
         // VIEW: BLUEPRINT KODE GAS
-        function renderGASBlueprintView(container) {
+        window.renderGASBlueprintView = function(container) {
             container.innerHTML = `
                 <div class="space-y-6">
                     <div>
@@ -2152,212 +2447,32 @@
                             <li>Hapus seluruh isi file bawaan <strong class="text-slate-800">Code.gs</strong>, kemudian salin seluruh baris kode di bawah ini.</li>
                             <li>Sebelum melakukan Deployment, jalankan fungsi <strong class="text-teal-700 font-bold">initDatabase</strong> sekali di editor Apps Script untuk membuat lembar database otomatis.</li>
                             <li>Klik <strong class="text-slate-800">Terapkan (Deploy)</strong> &gt; <strong class="text-slate-800">Penerapan Baru (New Deployment)</strong>. Pilih Jenis: <strong class="text-slate-800">Aplikasi Web (Web App)</strong>.</li>
-                            <li>Atur aksesibilitas pengguna: "Siapa saja yang memiliki akses" (Anyone) agar aplikasi web dapat berkomunikasi dengan lancar.</li>
+                            <li>Atur aksesibilitas pengguna: "Siapa saja" (Anyone) agar aplikasi web dapat berkomunikasi dengan lancar.</li>
                         </ol>
 
                         <div class="pt-4 border-t border-slate-100 space-y-3">
                             <div class="flex items-center justify-between">
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-                                    <i class="fa-solid fa-file-code text-teal-600"></i> Kode Sumber: Code.gs (GAS)
+                                    <i class="fa-solid fa-file-code text-teal-600"></i> Kode Sumber: Code.gs (GAS - ID Terikat)
                                 </h4>
-                                <button onclick="copyGASCode()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
+                                <button onclick="window.copyGASCode()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
                                     <i class="fa-solid fa-copy"></i> Salin Kode
                                 </button>
                             </div>
                             
                             <div class="relative bg-slate-900 rounded-2xl p-4 overflow-x-auto max-h-[400px]">
-                                <pre id="gasSourceCode" class="text-[11px] font-mono text-emerald-400 leading-normal">
-/* SITAS BACKEND ENGINE - MI ASSULAIMANIYAH
-   Sistem Informasi Tabungan Siswa Berbasis Google Sheets & GAS
-*/
-
-function doGet(e) {
-  var action = e && e.parameter ? e.parameter.action : null;
-  if (action === "getData") {
-    return handleGetData();
-  }
-  
-  // Tampilan halaman status interaktif jika diakses langsung di browser
-  var htmlOutput = HtmlService.createHtmlOutput(
-    '&lt;!DOCTYPE html&gt;' +
-    '&lt;html&gt;' +
-    '&lt;head&gt;' +
-    '  &lt;meta charset="UTF-8"&gt;' +
-    '  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;' +
-    '  &lt;title&gt;SITAS Cloud Gateway&lt;/title&gt;' +
-    '  &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;' +
-    '  &lt;link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&amp;display=swap" rel="stylesheet"&gt;' +
-    '  &lt;style&gt;body { font-family: "Plus Jakarta Sans", sans-serif; }&lt;/style&gt;' +
-    '&lt;/head&gt;' +
-    '&lt;body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-6"&gt;' +
-    '  &lt;div class="max-w-md w-full bg-slate-800 rounded-3xl p-8 border border-slate-700 text-center space-y-6 shadow-2xl"&gt;' +
-    '    &lt;div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto text-emerald-400 text-3xl"&gt;' +
-    '      ✓' +
-    '    &lt;/div&gt;' +
-    '    &lt;div class="space-y-2"&gt;' +
-    '      &lt;h1 class="text-xl font-extrabold tracking-tight"&gt;SITAS Cloud Gateway&lt;/h1&gt;' +
-    '      &lt;p class="text-xs text-emerald-400 font-bold uppercase tracking-widest"&gt;Koneksi Cloud Terhubung &amp; Aktif&lt;/p&gt;' +
-    '    &lt;/div&gt;' +
-    '    &lt;div class="p-4 bg-slate-850 rounded-2xl border border-slate-700 text-left text-xs text-slate-400 space-y-2 leading-relaxed"&gt;' +
-    '      &lt;p&gt;💡 &lt;strong&gt;Informasi Sistem:&lt;/strong&gt;&lt;/p&gt;' +
-    '      &lt;p&gt;Ini adalah alamat API Gateway SITAS MI Assulaimaniyah. Anda berhasil terhubung ke Google Sheets.&lt;/p&gt;' +
-    '      &lt;p&gt;Salin URL halaman ini dan tempelkan pada menu &lt;strong&gt;Konfigurasi&lt;/strong&gt; di dashboard SITAS Anda untuk mengaktifkan sinkronisasi cloud.&lt;/p&gt;' +
-    '    &lt;/div&gt;' +
-    '    &lt;div class="text-[10px] text-slate-500 font-semibold"&gt;' +
-    '      SITAS v3.0 • MI Assulaimaniyah Mojoagung' +
-    '    &lt;/div&gt;' +
-    '  &lt;/div&gt;' +
-    '&lt;/body&gt;' +
-    '&lt;/html&gt;'
-  );
-  htmlOutput.setTitle("SITAS Cloud Gateway");
-  return htmlOutput;
-}
-
-function doPost(e) {
-  try {
-    var rawData = JSON.parse(e.postData.contents);
-    var action = rawData.action;
-
-    if (action === "syncDatabase") {
-      return handleSyncDatabase(rawData);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Aksi POST tidak dikenal" }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function handleSyncDatabase(payload) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // 1. Sinkronisasi Sheet "Siswa"
-  var siswaSheet = ss.getSheetByName("Siswa") || ss.insertSheet("Siswa");
-  siswaSheet.clear();
-  var headersSiswa = ["ID", "Nama", "Kelas", "Wali", "Phone", "Saldo", "Status"];
-  siswaSheet.appendRow(headersSiswa);
-  siswaSheet.getRange(1, 1, 1, headersSiswa.length).setFontWeight("bold").setBackground("#115e59").setFontColor("#ffffff");
-  
-  payload.siswas.forEach(function(s) {
-    siswaSheet.appendRow([s.id, s.name, s.class, s.parentName, s.phone, s.balance, s.status]);
-  });
-
-  // 2. Sinkronisasi Sheet "Transaksi"
-  var txSheet = ss.getSheetByName("Transaksi") || ss.insertSheet("Transaksi");
-  txSheet.clear();
-  var headersTx = ["ID_Transaksi", "Tanggal", "ID_Siswa", "Nama_Siswa", "Kelas", "Jenis", "Jumlah", "Saldo_Snap", "Teller", "Keterangan"];
-  txSheet.appendRow(headersTx);
-  txSheet.getRange(1, 1, 1, headersTx.length).setFontWeight("bold").setBackground("#0d9488").setFontColor("#ffffff");
-
-  payload.transactions.forEach(function(t) {
-    txSheet.appendRow([t.id, t.date, t.studentId, t.studentName, t.class, t.type, t.amount, t.balanceSnap, t.admin, t.desc]);
-  });
-
-  // 3. Sinkronisasi Sheet "Kelas"
-  var kelasSheet = ss.getSheetByName("Kelas") || ss.insertSheet("Kelas");
-  kelasSheet.clear();
-  var headersKelas = ["ID_Kelas", "Wali_Kelas_Username"];
-  kelasSheet.appendRow(headersKelas);
-  kelasSheet.getRange(1, 1, 1, headersKelas.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("#ffffff");
-
-  payload.classes.forEach(function(c) {
-    kelasSheet.appendRow([c.id, c.teacherUsername]);
-  });
-
-  return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Google Sheets berhasil diperbarui!" }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function handleGetData() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var siswaSheet = ss.getSheetByName("Siswa");
-  var txSheet = ss.getSheetByName("Transaksi");
-  var kelasSheet = ss.getSheetByName("Kelas");
-  
-  var result = { siswas: [], transactions: [], classes: [] };
-  
-  if (siswaSheet) {
-    var sData = siswaSheet.getDataRange().getValues();
-    for(var i = 1; i < sData.length; i++) {
-      result.siswas.push({
-        id: sData[i][0].toString(),
-        name: sData[i][1],
-        class: sData[i][2],
-        parentName: sData[i][3],
-        phone: sData[i][4].toString(),
-        balance: Number(sData[i][5]),
-        status: sData[i][6]
-      });
-    }
-  }
-  
-  if (txSheet) {
-    var tData = txSheet.getDataRange().getValues();
-    for(var j = 1; j < tData.length; j++) {
-      result.transactions.push({
-        id: tData[j][0].toString(),
-        date: tData[j][1],
-        studentId: tData[j][2].toString(),
-        studentName: tData[j][3],
-        class: tData[j][4],
-        type: tData[j][5],
-        amount: Number(tData[j][6]),
-        balanceSnap: Number(tData[j][7]),
-        admin: tData[j][8],
-        desc: tData[j][9]
-      });
-    }
-  }
-
-  if (kelasSheet) {
-    var kData = kelasSheet.getDataRange().getValues();
-    for(var k = 1; k < kData.length; k++) {
-      result.classes.push({
-        id: kData[k][0].toString(),
-        teacherUsername: kData[k][1].toString()
-      });
-    }
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function initDatabase() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  var siswaSheet = ss.getSheetByName("Siswa") || ss.insertSheet("Siswa");
-  siswaSheet.clear();
-  var headers = ["ID", "Nama", "Kelas", "Wali", "Phone", "Saldo", "Status"];
-  siswaSheet.appendRow(headers);
-  siswaSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#115e59").setFontColor("#ffffff");
-  
-  var txSheet = ss.getSheetByName("Transaksi") || ss.insertSheet("Transaksi");
-  txSheet.clear();
-  var headersTx = ["ID_Transaksi", "Tanggal", "ID_Siswa", "Nama_Siswa", "Kelas", "Jenis", "Jumlah", "Saldo_Snap", "Teller", "Keterangan"];
-  txSheet.appendRow(headersTx);
-  txSheet.getRange(1, 1, 1, headersTx.length).setFontWeight("bold").setBackground("#0d9488").setFontColor("#ffffff");
-
-  var kelasSheet = ss.getSheetByName("Kelas") || ss.insertSheet("Kelas");
-  kelasSheet.clear();
-  var headersKelas = ["ID_Kelas", "Wali_Kelas_Username"];
-  kelasSheet.appendRow(headersKelas);
-  kelasSheet.getRange(1, 1, 1, headersKelas.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("#ffffff");
-  
-  return "Database Berhasil Diinisialisasi!";
-}</pre>
+                                <pre id="gasSourceCode" class="text-[11px] font-mono text-emerald-400 leading-normal"></pre>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-        }
+            // Render GAS code inside block safely
+            const rawCode = document.getElementById('rawGasCode').innerHTML;
+            document.getElementById('gasSourceCode').innerText = rawCode.trim();
+        };
 
-        function copyGASCode() {
+        window.copyGASCode = function() {
             const preText = document.getElementById('gasSourceCode').innerText;
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = preText;
@@ -2365,20 +2480,39 @@ function initDatabase() {
             tempTextArea.select();
             try {
                 document.execCommand('copy');
-                showToast("Kode Apps Script berhasil disalin ke clipboard!");
+                window.showToast("Kode Apps Script berhasil disalin ke clipboard!");
             } catch (err) {
-                showToast("Gagal menyalin otomatis, silakan blok teks manual.", true);
+                window.showToast("Gagal menyalin otomatis, silakan blok teks manual.", true);
             }
             document.body.removeChild(tempTextArea);
-        }
+        };
 
         // --- RUNNING ON WINDOW LOAD ---
         window.onload = function () {
+            window.initDatabase();
             document.getElementById('loginInstName').innerText = instDetails.name.toUpperCase();
             document.getElementById('headerInstName').innerText = instDetails.name.toUpperCase();
             document.getElementById('headerInstAddress').innerText = instDetails.address;
-            updateSyncBadge();
-        }
+            window.updateSyncBadge();
+
+            // Lakukan sinkronisasi PULL senyap jika URL valid saat inisialisasi awal
+            const autoUrl = window.getAutoGasUrl();
+            if (autoUrl) {
+                fetch(autoUrl + "?action=getData")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.siswas && data.transactions) {
+                        siswas = data.siswas;
+                        transactions = data.transactions;
+                        if (data.classes) {
+                            classes = data.classes;
+                        }
+                        window.saveToLocalStorage();
+                        window.updateSyncBadge();
+                    }
+                }).catch(e => console.log("Silent background pull skipped: " + e));
+            }
+        };
     </script>
 </body>
 </html>
